@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pants Inventory Tracker</title>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="https://apis.google.com/js/api.js"></script>
     <style>
         * {
             margin: 0;
@@ -71,8 +69,10 @@
             background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             color: white;
             padding: 30px;
+            padding-bottom: 40px;
             text-align: center;
             position: relative;
+            min-height: 180px;
         }
 
         header h1 {
@@ -100,7 +100,7 @@
             transform: scale(1.05);
         }
 
-        /* Google Drive Sync Styles */
+        /* Dropbox Sync Styles */
         .sync-container {
             position: absolute;
             top: 70px;
@@ -166,26 +166,6 @@
             cursor: not-allowed;
         }
 
-        .google-signin-button {
-            background: white;
-            color: #333;
-            border: 2px solid rgba(255,255,255,0.3);
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .google-signin-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-
         .sync-settings {
             background: var(--section-bg);
             padding: 15px;
@@ -209,6 +189,15 @@
 
         .sync-settings input[type="checkbox"] {
             width: auto;
+        }
+
+        .sync-settings a {
+            color: #0061ff;
+            text-decoration: none;
+        }
+
+        .sync-settings a:hover {
+            text-decoration: underline;
         }
 
         @media (max-width: 768px) {
@@ -462,92 +451,6 @@
             margin-bottom: 15px;
         }
 
-        /* Searchable dropdown styles */
-        .searchable-select {
-            position: relative;
-            width: 100%;
-        }
-
-        .searchable-select input {
-            width: 100%;
-            padding: 12px;
-            padding-right: 40px;
-            border: 2px solid var(--input-border);
-            border-radius: 8px;
-            font-size: 14px;
-            background: var(--input-bg);
-            color: var(--text-primary);
-            cursor: pointer;
-        }
-
-        .searchable-select input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .searchable-select .dropdown-arrow {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            pointer-events: none;
-            color: var(--text-secondary);
-            font-size: 12px;
-        }
-
-        .searchable-select-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            max-height: 300px;
-            overflow-y: auto;
-            background: var(--input-bg);
-            border: 2px solid var(--input-border);
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-            z-index: 1000;
-            display: none;
-            box-shadow: 0 4px 12px var(--shadow-color);
-        }
-
-        .searchable-select-dropdown.active {
-            display: block;
-        }
-
-        .searchable-select-option {
-            padding: 12px;
-            cursor: pointer;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--text-primary);
-            transition: background 0.2s;
-        }
-
-        .searchable-select-option:hover {
-            background: var(--table-hover);
-        }
-
-        .searchable-select-option.selected {
-            background: #e3f2fd;
-            color: #1565c0;
-        }
-
-        [data-theme="dark"] .searchable-select-option.selected {
-            background: #1e3a52;
-            color: #64b5f6;
-        }
-
-        .searchable-select-option.no-results {
-            text-align: center;
-            color: var(--text-secondary);
-            cursor: default;
-            font-style: italic;
-        }
-
-        .searchable-select-option.no-results:hover {
-            background: transparent;
-        }
-
         @media (max-width: 768px) {
             .form-row {
                 grid-template-columns: 1fr;
@@ -689,15 +592,11 @@
                     <span id="syncStatusIcon">☁️</span>
                     <span id="syncStatusText">Local Only</span>
                 </div>
-                <button id="googleSignInButton" class="google-signin-button" onclick="handleGoogleSignIn()" style="display: none;">
-                    <span>🔒</span>
-                    <span>Sign in with Google</span>
-                </button>
                 <button id="syncButton" class="sync-button" onclick="manualSync()" style="display: none;">
                     🔄 Sync Now
                 </button>
-                <button id="signOutButton" class="sync-button" onclick="handleSignOut()" style="display: none;">
-                    Sign Out
+                <button id="disconnectButton" class="sync-button" onclick="handleDisconnect()" style="display: none;">
+                    Disconnect
                 </button>
             </div>
             <h1>👖 Pants Inventory Tracker</h1>
@@ -884,18 +783,9 @@
                     </div>
                     <div class="form-group">
                         <label for="logPants">Pants Worn</label>
-                        <div class="searchable-select">
-                            <input 
-                                type="text" 
-                                id="logPants" 
-                                placeholder="Search or select pants..." 
-                                autocomplete="off"
-                                required
-                            >
-                            <span class="dropdown-arrow">▼</span>
-                            <div class="searchable-select-dropdown" id="logPantsDropdown"></div>
-                        </div>
-                        <input type="hidden" id="logPantsId" required>
+                        <select id="logPants" required>
+                            <option value="">Select pants...</option>
+                        </select>
                     </div>
                 </div>
                 <div class="form-group">
@@ -975,20 +865,46 @@
             <h2 style="margin-bottom: 20px; color: var(--text-primary);">Settings</h2>
             
             <div class="sync-settings">
-                <h3 style="margin-bottom: 15px; color: var(--text-primary);">☁️ Google Drive Sync</h3>
+                <h3 style="margin-bottom: 15px; color: var(--text-primary);">☁️ Dropbox Sync</h3>
                 
-                <div id="syncNotSignedIn" style="display: block;">
+                <div id="syncNotConnected" style="display: block;">
                     <p style="color: var(--text-secondary); margin-bottom: 15px;">
-                        Sign in with Google to automatically sync your data across all devices.
+                        Connect to Dropbox to automatically sync your data across all devices.
                     </p>
-                    <button onclick="handleGoogleSignIn()" style="background: white; color: #333;">
-                        🔒 Sign in with Google Drive
-                    </button>
+                    
+                    <div style="background: var(--section-bg); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 2px solid #0061ff;">
+                        <h4 style="color: var(--text-primary); margin-bottom: 10px;">📝 Quick Setup (5 minutes):</h4>
+                        <ol style="color: var(--text-secondary); margin-left: 20px; line-height: 1.8;">
+                            <li><strong>Go to:</strong> <a href="https://www.dropbox.com/developers/apps/create" target="_blank" style="color: #0061ff;">dropbox.com/developers/apps/create</a></li>
+                            <li><strong>Choose:</strong> "Scoped access" → "App folder"</li>
+                            <li><strong>Name your app:</strong> "Pants Tracker" (or anything)</li>
+                            <li><strong>Click "Create app"</strong></li>
+                            <li><strong>In the app settings:</strong>
+                                <ul style="margin-left: 20px; margin-top: 5px;">
+                                    <li>Go to "Permissions" tab</li>
+                                    <li>Check: <strong>files.content.write</strong> and <strong>files.content.read</strong></li>
+                                    <li>Click "Submit" at the bottom</li>
+                                </ul>
+                            </li>
+                            <li><strong>Go back to "Settings" tab</strong></li>
+                            <li><strong>Scroll to "Generated access token"</strong></li>
+                            <li><strong>Click "Generate"</strong> → Copy the token (long string starting with "sl.")</li>
+                            <li><strong>Open this HTML file in a text editor</strong></li>
+                            <li><strong>Find line ~1766:</strong> <code style="background: var(--input-bg); padding: 2px 6px; border-radius: 4px;">const DROPBOX_ACCESS_TOKEN = 'YOUR_DROPBOX_ACCESS_TOKEN_HERE';</code></li>
+                            <li><strong>Replace</strong> with your token: <code style="background: var(--input-bg); padding: 2px 6px; border-radius: 4px;">const DROPBOX_ACCESS_TOKEN = 'sl.your-token-here';</code></li>
+                            <li><strong>Save the file</strong></li>
+                            <li><strong>Refresh this page</strong> → You're connected! ✅</li>
+                        </ol>
+                    </div>
+                    
+                    <p style="color: var(--text-secondary); font-size: 0.9em; margin-top: 10px;">
+                        <strong>💡 Tip:</strong> Your token is private - don't share it! It only works with your Dropbox.
+                    </p>
                 </div>
                 
-                <div id="syncSignedIn" style="display: none;">
-                    <p style="color: var(--text-primary); margin-bottom: 10px;">
-                        <strong>Signed in as:</strong> <span id="userEmail"></span>
+                <div id="syncConnected" style="display: none;">
+                    <p style="color: #0061ff; margin-bottom: 10px; font-weight: 600;">
+                        ✓ Connected to Dropbox
                     </p>
                     <p style="color: var(--text-secondary); font-size: 0.9em; margin-bottom: 15px;">
                         Last synced: <span id="lastSyncTime">Never</span>
@@ -1000,14 +916,18 @@
                             <span style="color: var(--text-primary);">Enable automatic sync</span>
                         </label>
                         <p style="color: var(--text-secondary); font-size: 0.85em; margin-left: 28px; margin-top: 4px;">
-                            Automatically saves changes to Google Drive every 30 seconds
+                            Automatically saves changes to Dropbox every 30 seconds
                         </p>
                     </div>
                     
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <button onclick="manualSync()" class="btn-secondary">🔄 Sync Now</button>
-                        <button onclick="handleSignOut()" class="btn-danger">Sign Out</button>
+                        <button onclick="handleDisconnect()" style="background: #dc3545; color: white;">Disconnect</button>
                     </div>
+                    
+                    <p style="color: var(--text-secondary); font-size: 0.85em; margin-top: 15px;">
+                        <strong>📁 Your data is saved to:</strong> <code style="background: var(--input-bg); padding: 2px 6px; border-radius: 4px;">/Apps/Pants Tracker/pants-tracker-data.json</code>
+                    </p>
                 </div>
             </div>
             
@@ -1026,10 +946,10 @@
             <div class="sync-settings">
                 <h3 style="margin-bottom: 15px; color: var(--text-primary);">ℹ️ About</h3>
                 <p style="color: var(--text-secondary); margin-bottom: 10px;">
-                    <strong>Version:</strong> 2.0
+                    <strong>Version:</strong> 2.0 with Dropbox Sync
                 </p>
                 <p style="color: var(--text-secondary); font-size: 0.9em;">
-                    Your data is stored locally in your browser and optionally synced to your Google Drive. 
+                    Your data is stored locally in your browser and optionally synced to your Dropbox. 
                     No data is sent to any other servers.
                 </p>
             </div>
@@ -1111,11 +1031,8 @@
             localStorage.setItem('pantsWearLog', JSON.stringify(wearLog));
             localStorage.setItem('lastModified', Date.now());
             
-            // Trigger Drive sync if signed in and not already syncing
-            if (googleAccessToken && driveFileId && autoSyncEnabled && !isSyncing) {
-                // Debounce - don't sync immediately, wait for auto-sync interval
-                // This prevents too many API calls
-            }
+            // Dropbox sync happens automatically every 30 seconds if enabled
+            // No need to trigger immediately to avoid excessive API calls
         }
 
         // Tab switching
@@ -1486,119 +1403,27 @@
         // Set today's date as default
         document.getElementById('logDate').valueAsDate = new Date();
 
-        // Searchable dropdown functionality
-        let selectedPantsId = null;
-
+        // Update pants dropdown in log form
         function updateLogPantsDropdown() {
-            const input = document.getElementById('logPants');
-            const dropdown = document.getElementById('logPantsDropdown');
-            const hiddenInput = document.getElementById('logPantsId');
+            const select = document.getElementById('logPants');
+            select.innerHTML = '<option value="">Select pants...</option>';
             
-            // Clear previous selection
-            selectedPantsId = null;
-            hiddenInput.value = '';
-            input.value = '';
-            
-            // Set up event listeners
-            input.removeEventListener('focus', showDropdown);
-            input.removeEventListener('input', filterDropdown);
-            input.addEventListener('focus', showDropdown);
-            input.addEventListener('input', filterDropdown);
-            
-            // Render initial dropdown
-            renderDropdownOptions('');
-        }
-
-        function renderDropdownOptions(searchTerm) {
-            const dropdown = document.getElementById('logPantsDropdown');
-            const lowerSearch = searchTerm.toLowerCase();
-            
-            // Filter inventory based on search term
-            const filtered = inventory.filter(pants => {
-                const searchText = `${pants.brand} ${pants.model} ${pants.color} ${pants.style}`.toLowerCase();
-                return searchText.includes(lowerSearch);
+            inventory.forEach(pants => {
+                const option = document.createElement('option');
+                option.value = pants.id;
+                option.textContent = `${pants.brand} ${pants.model} - ${pants.color}`;
+                select.appendChild(option);
             });
-            
-            // Clear dropdown
-            dropdown.innerHTML = '';
-            
-            if (filtered.length === 0) {
-                const noResults = document.createElement('div');
-                noResults.className = 'searchable-select-option no-results';
-                noResults.textContent = 'No pants found';
-                dropdown.appendChild(noResults);
-            } else {
-                filtered.forEach(pants => {
-                    const option = document.createElement('div');
-                    option.className = 'searchable-select-option';
-                    option.textContent = `${pants.brand} ${pants.model} - ${pants.color}`;
-                    option.dataset.id = pants.id;
-                    option.dataset.label = `${pants.brand} ${pants.model} - ${pants.color}`;
-                    
-                    // Highlight if selected
-                    if (selectedPantsId === pants.id) {
-                        option.classList.add('selected');
-                    }
-                    
-                    option.addEventListener('click', () => selectOption(pants.id, option.dataset.label));
-                    dropdown.appendChild(option);
-                });
-            }
         }
-
-        function showDropdown() {
-            const dropdown = document.getElementById('logPantsDropdown');
-            const input = document.getElementById('logPants');
-            
-            dropdown.classList.add('active');
-            renderDropdownOptions(input.value);
-        }
-
-        function hideDropdown() {
-            const dropdown = document.getElementById('logPantsDropdown');
-            dropdown.classList.remove('active');
-        }
-
-        function filterDropdown(e) {
-            const searchTerm = e.target.value;
-            selectedPantsId = null; // Clear selection when typing
-            document.getElementById('logPantsId').value = '';
-            renderDropdownOptions(searchTerm);
-        }
-
-        function selectOption(id, label) {
-            const input = document.getElementById('logPants');
-            const hiddenInput = document.getElementById('logPantsId');
-            
-            selectedPantsId = id;
-            input.value = label;
-            hiddenInput.value = id;
-            hideDropdown();
-        }
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            const searchableSelect = document.querySelector('.searchable-select');
-            if (searchableSelect && !searchableSelect.contains(e.target)) {
-                hideDropdown();
-            }
-        });
 
         // Log wear form submission
         document.getElementById('logWearForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const pantsId = parseInt(document.getElementById('logPantsId').value);
-            
-            if (!pantsId) {
-                alert('Please select a pair of pants');
-                return;
-            }
-            
             const log = {
                 id: Date.now(),
                 date: document.getElementById('logDate').value,
-                pantsId: pantsId,
+                pantsId: parseInt(document.getElementById('logPants').value),
                 temperature: document.getElementById('logTemp').value || null,
                 notes: document.getElementById('logNotes').value
             };
@@ -1622,12 +1447,6 @@
             this.reset();
             document.getElementById('logDate').valueAsDate = new Date();
             document.getElementById('logWeatherInfo').innerHTML = '';
-            
-            // Reset searchable dropdown
-            selectedPantsId = null;
-            document.getElementById('logPants').value = '';
-            document.getElementById('logPantsId').value = '';
-            
             renderWearHistory();
             alert('Wear logged successfully!');
         });
@@ -2165,139 +1984,57 @@
         }
 
         // ========================================
-        // GOOGLE DRIVE SYNC FUNCTIONALITY
+        // DROPBOX SYNC FUNCTIONALITY
         // ========================================
         
-        // IMPORTANT: Replace this with your own Google Client ID
-        // Instructions for getting your Client ID are at the bottom of this file
-        const GOOGLE_CLIENT_ID = 'YOUR_CLIENT_ID_HERE.apps.googleusercontent.com';
-        const GOOGLE_API_KEY = 'YOUR_API_KEY_HERE';
-        const DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
-        const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+        // IMPORTANT: Replace this with your Dropbox Access Token
+        // Get it from: https://www.dropbox.com/developers/apps
+        // Instructions in the Settings tab
+        const DROPBOX_ACCESS_TOKEN = 'sl.u.AGLhigsDidYV315Q6Wf6sxHBF0KlRwaQUhNfDuj0q1XzGewDowrIhrswGq0o1WdU0QiRkoJIb0w6J0PZBqvcNJWHWB33PlpDMS55IGHufFgG9Cs_Phj5MuLMWygU69a6kcUNs3GlXdGEVabAcH8ksqyEr65iK4_vXTEnJUTioP0bYK-mbQ3D-gy1XvKz-q60C7HzGOfcfKMGD8vbbSBwPiO61fUbmrZRcZlNdEz0j1xA52m32Ao3qvZ_fxjfHKZCPLj9KK4LRZFAO1navxHHE1Je6Yj0XhP1-WtcNRyfDAn9t8lVMF0rfEPQnCGY4dvJgv-dEXW6-7SftXHZuxIu_VVLGtuz_eik09As79RZNA4n3_egmOfaDZAiGAPRmvgittfbmTFOu00Qk7V8N06GyPD59wKMspLrVvP94yZAiCbPuqDWp92x0QD3gUL4Vns0NC8OK_05FMjS4nm9tq8bX4LfQFHxavbaNWkFnhtlO0HDxEQWf9JzVMJvBJFRgYih3GOj5g5Y1X6ArZDYss4LpahMc2HdiQz6QMuyHV3FI13xY3s6HKBYvNtivSU6MQatwzMtSR3rQrN_82sQtMj4PWPMlYh7EMRClD6LErHbsvFZKsoYW-607bsrm8AO5oM9tDK-SUNn5jmLvXYnXvlIKvQgF32fLcPHRtHNENMUnv5oO2HflfJTtE5d36WYST4wxq2E9NH0p4_SGM4OucSl979L5aGKNc1k8vPxY9fJoVO_kK8Kg76LYXWezSYOptxeAIAKb1B7zUwF1RFnBk8a-shWiUE6NMiMOpQU9kZHtIavU-rf2L8vVcXFpqZ-_LiyBA9TMFJi9PMkIrd34n1RdbZ-TH-Ah0zvgZXH-36x58Qw3m7pG7qIezf-xmHYmTgGnxtiYN8d06sit_Llf3uOv2jPgXpMhFCrUvy7I3519NY-qc5oEheRarGHlmy729Av8bJ-wqTbklgb25tISdlT71-bqCdnm9tBA0SKFZhLqRBYapBbwdN-22Kf7JAMWGDD9CDliPaFc2Bbid6pM2Mh-dCwX1Z_HersGFK8h3OwARniPRgmD0gmAZH_5wGf9mp63poAsUKnizrG_lreYyp6tTmeKNQwrsSzVyclcTxEfGRNHKcfcz-TVf8r9JsD6Es7LiwZ0YLShiwDO7bagDJnhzUFDQP1cw3UD_xZ6Q-eli4yTnTYanvapE_o9oJCYMiaB3BldlYvduJrHHhMVGctKX6ehCyG45ADhXmi8wfr85ro9D5tM3jhRx1utwR4ylPVq8f1SstT_3zFAXUEywxDNj8I06bM9gK5bpcf71i8KZ6f_Q';
+        const DROPBOX_FILE_PATH = '/pants-tracker-data.json';
         
-        let googleAccessToken = null;
-        let driveFileId = null;
+        let dropboxConnected = false;
         let autoSyncInterval = null;
         let autoSyncEnabled = true;
         let isSyncing = false;
         let lastSyncTime = null;
         
-        // Initialize Google API
-        function initGoogleAPI() {
-            gapi.load('client', async () => {
-                try {
-                    // Simpler initialization without API key
-                    await gapi.client.init({
-                        discoveryDocs: DISCOVERY_DOCS,
-                    });
-                    
-                    console.log('✓ Google API initialized');
-                    
-                    // Check if user was previously signed in
-                    const savedToken = localStorage.getItem('googleAccessToken');
-                    const savedFileId = localStorage.getItem('driveFileId');
-                    const savedEmail = localStorage.getItem('userEmail');
-                    
-                    if (savedToken && savedFileId) {
-                        googleAccessToken = savedToken;
-                        driveFileId = savedFileId;
-                        gapi.client.setToken({ access_token: googleAccessToken });
-                        
-                        // Verify token is still valid
-                        try {
-                            await gapi.client.drive.files.get({ fileId: driveFileId });
-                            updateSyncUI(true, savedEmail || 'Google Drive User');
-                            updateSyncStatus('synced', 'Synced');
-                            loadFromDrive();
-                        } catch (error) {
-                            console.log('Token expired, need to sign in again');
-                            // Token expired, sign out
-                            handleSignOut();
-                        }
-                    } else {
-                        updateSyncUI(false);
-                        document.getElementById('googleSignInButton').style.display = 'flex';
-                    }
-                } catch (error) {
-                    console.error('Error initializing Google API:', error);
-                    console.log('This is likely an API Key issue. The app will still work - just sign in when ready.');
-                    updateSyncUI(false);
-                    document.getElementById('googleSignInButton').style.display = 'flex';
-                    updateSyncStatus('offline', 'Ready to sign in');
-                }
-            });
-        }
-        
-        // Handle Google Sign In
-        async function handleGoogleSignIn() {
-            try {
-                const client = google.accounts.oauth2.initTokenClient({
-                    client_id: GOOGLE_CLIENT_ID,
-                    scope: SCOPES,
-                    callback: async (response) => {
-                        if (response.access_token) {
-                            googleAccessToken = response.access_token;
-                            gapi.client.setToken({ access_token: googleAccessToken });
-                            
-                            // Use a placeholder for email (avoids API key restriction issues)
-                            const userEmail = 'Google Drive User';
-                            localStorage.setItem('googleAccessToken', googleAccessToken);
-                            localStorage.setItem('userEmail', userEmail);
-                            
-                            updateSyncUI(true, userEmail);
-                            updateSyncStatus('syncing', 'Setting up...');
-                            
-                            // Find or create the data file
-                            await findOrCreateDriveFile();
-                            
-                            // Do initial sync
-                            await syncToDrive();
-                            
-                            updateSyncStatus('synced', 'Synced');
-                            startAutoSync();
-                        }
-                    },
-                });
-                client.requestAccessToken();
-            } catch (error) {
-                console.error('Sign in error:', error);
-                updateSyncStatus('error', 'Sign In Failed');
-                alert('Failed to sign in. Please try again.');
+        // Check if Dropbox is connected
+        function checkDropboxConnection() {
+            if (DROPBOX_ACCESS_TOKEN && DROPBOX_ACCESS_TOKEN !== 'YOUR_DROPBOX_ACCESS_TOKEN_HERE') {
+                dropboxConnected = true;
+                updateSyncUI(true);
+                loadFromDropbox();
+                startAutoSync();
+            } else {
+                dropboxConnected = false;
+                updateSyncUI(false);
             }
-        }
-        
-        // Handle Sign Out
-        function handleSignOut() {
-            googleAccessToken = null;
-            driveFileId = null;
-            localStorage.removeItem('googleAccessToken');
-            localStorage.removeItem('driveFileId');
-            localStorage.removeItem('userEmail');
-            
-            if (gapi.client.getToken()) {
-                gapi.client.setToken(null);
-            }
-            
-            stopAutoSync();
-            updateSyncUI(false);
-            updateSyncStatus('offline', 'Local Only');
         }
         
         // Update Sync UI
-        function updateSyncUI(signedIn, email = '') {
-            if (signedIn) {
-                document.getElementById('googleSignInButton').style.display = 'none';
-                document.getElementById('syncButton').style.display = 'block';
-                document.getElementById('signOutButton').style.display = 'block';
-                document.getElementById('syncNotSignedIn').style.display = 'none';
-                document.getElementById('syncSignedIn').style.display = 'block';
-                document.getElementById('userEmail').textContent = email;
+        function updateSyncUI(connected) {
+            const syncStatus = document.getElementById('syncStatus');
+            const connectButton = document.getElementById('connectDropboxButton');
+            const disconnectButton = document.getElementById('disconnectButton');
+            const syncButton = document.getElementById('syncButton');
+            const notConnected = document.getElementById('syncNotConnected');
+            const connectedSection = document.getElementById('syncConnected');
+            
+            if (connected) {
+                if (connectButton) connectButton.style.display = 'none';
+                if (syncButton) syncButton.style.display = 'block';
+                if (disconnectButton) disconnectButton.style.display = 'block';
+                if (notConnected) notConnected.style.display = 'none';
+                if (connectedSection) connectedSection.style.display = 'block';
+                updateSyncStatus('synced', 'Connected');
             } else {
-                document.getElementById('googleSignInButton').style.display = 'flex';
-                document.getElementById('syncButton').style.display = 'none';
-                document.getElementById('signOutButton').style.display = 'none';
-                document.getElementById('syncNotSignedIn').style.display = 'block';
-                document.getElementById('syncSignedIn').style.display = 'none';
+                if (connectButton) connectButton.style.display = 'block';
+                if (syncButton) syncButton.style.display = 'none';
+                if (disconnectButton) disconnectButton.style.display = 'none';
+                if (notConnected) notConnected.style.display = 'block';
+                if (connectedSection) connectedSection.style.display = 'none';
+                updateSyncStatus('offline', 'Local Only');
             }
         }
         
@@ -2306,6 +2043,8 @@
             const statusElement = document.getElementById('syncStatus');
             const iconElement = document.getElementById('syncStatusIcon');
             const textElement = document.getElementById('syncStatusText');
+            
+            if (!statusElement || !iconElement || !textElement) return;
             
             statusElement.className = `sync-status ${status}`;
             
@@ -2321,93 +2060,74 @@
             
             if (status === 'synced' && lastSyncTime) {
                 const timeStr = new Date(lastSyncTime).toLocaleTimeString();
-                document.getElementById('lastSyncTime').textContent = timeStr;
-            }
-        }
-        
-        // Find or Create Drive File
-        async function findOrCreateDriveFile() {
-            try {
-                // Search for existing file
-                const response = await gapi.client.drive.files.list({
-                    q: "name='pants-tracker-data.json' and trashed=false",
-                    spaces: 'drive',
-                    fields: 'files(id, name)'
-                });
-                
-                if (response.result.files && response.result.files.length > 0) {
-                    driveFileId = response.result.files[0].id;
-                    localStorage.setItem('driveFileId', driveFileId);
-                    console.log('Found existing file:', driveFileId);
-                } else {
-                    // Create new file
-                    const metadata = {
-                        name: 'pants-tracker-data.json',
-                        mimeType: 'application/json'
-                    };
-                    
-                    const createResponse = await gapi.client.drive.files.create({
-                        resource: metadata,
-                        fields: 'id'
-                    });
-                    
-                    driveFileId = createResponse.result.id;
-                    localStorage.setItem('driveFileId', driveFileId);
-                    console.log('Created new file:', driveFileId);
+                const lastSyncElement = document.getElementById('lastSyncTime');
+                if (lastSyncElement) {
+                    lastSyncElement.textContent = timeStr;
                 }
-            } catch (error) {
-                console.error('Error finding/creating file:', error);
-                throw error;
             }
         }
         
-        // Load Data from Drive
-        async function loadFromDrive() {
-            if (!driveFileId || isSyncing) return;
+        // Load Data from Dropbox
+        async function loadFromDropbox() {
+            if (!dropboxConnected || isSyncing) return;
             
             try {
                 isSyncing = true;
                 updateSyncStatus('syncing', 'Loading...');
                 
-                const response = await gapi.client.drive.files.get({
-                    fileId: driveFileId,
-                    alt: 'media'
+                const response = await fetch('https://content.dropboxapi.com/2/files/download', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${DROPBOX_ACCESS_TOKEN}`,
+                        'Dropbox-API-Arg': JSON.stringify({ path: DROPBOX_FILE_PATH })
+                    }
                 });
                 
-                if (response.body) {
-                    const driveData = JSON.parse(response.body);
+                if (response.ok) {
+                    const dropboxData = await response.json();
                     
                     // Check if we need to merge data
                     const localTimestamp = localStorage.getItem('lastModified') || 0;
-                    const driveTimestamp = driveData.lastModified || 0;
+                    const dropboxTimestamp = dropboxData.lastModified || 0;
                     
-                    if (driveTimestamp > localTimestamp || !localTimestamp) {
-                        // Drive data is newer, use it
-                        inventory = driveData.inventory || [];
-                        wearLog = driveData.wearLog || [];
-                        localStorage.setItem('lastModified', driveTimestamp);
+                    if (dropboxTimestamp > localTimestamp || !localTimestamp) {
+                        // Dropbox data is newer, use it
+                        inventory = dropboxData.inventory || [];
+                        wearLog = dropboxData.wearLog || [];
+                        localStorage.setItem('lastModified', dropboxTimestamp);
                         saveData(); // Save to localStorage
                         renderInventoryTable();
-                        console.log('Loaded data from Drive');
-                    } else if (localTimestamp > driveTimestamp) {
-                        // Local data is newer, sync it to Drive
-                        await syncToDrive();
+                        console.log('Loaded data from Dropbox');
+                    } else if (localTimestamp > dropboxTimestamp) {
+                        // Local data is newer, sync it to Dropbox
+                        await syncToDropbox();
                     }
+                    
+                    lastSyncTime = Date.now();
+                    updateSyncStatus('synced', 'Synced');
+                } else if (response.status === 409) {
+                    // File doesn't exist yet, create it
+                    console.log('File not found, will create on first sync');
+                    await syncToDropbox();
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-                
-                lastSyncTime = Date.now();
-                updateSyncStatus('synced', 'Synced');
             } catch (error) {
-                console.error('Error loading from Drive:', error);
-                updateSyncStatus('error', 'Load Failed');
+                console.error('Error loading from Dropbox:', error);
+                if (error.message.includes('409')) {
+                    // File doesn't exist, sync local data
+                    await syncToDropbox();
+                } else {
+                    updateSyncStatus('error', 'Load Failed');
+                }
             } finally {
                 isSyncing = false;
             }
         }
         
-        // Sync Data to Drive
-        async function syncToDrive() {
-            if (!driveFileId || isSyncing) return;
+        // Sync Data to Dropbox
+        async function syncToDropbox() {
+            if (!dropboxConnected || isSyncing) return;
             
             try {
                 isSyncing = true;
@@ -2421,35 +2141,31 @@
                     version: '2.0'
                 };
                 
-                const blob = new Blob([JSON.stringify(dataToSync, null, 2)], { type: 'application/json' });
-                
-                const metadata = {
-                    name: 'pants-tracker-data.json',
-                    mimeType: 'application/json'
-                };
-                
-                const formData = new FormData();
-                formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-                formData.append('file', blob);
-                
-                const response = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart`, {
-                    method: 'PATCH',
+                const response = await fetch('https://content.dropboxapi.com/2/files/upload', {
+                    method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${googleAccessToken}`
+                        'Authorization': `Bearer ${DROPBOX_ACCESS_TOKEN}`,
+                        'Dropbox-API-Arg': JSON.stringify({
+                            path: DROPBOX_FILE_PATH,
+                            mode: 'overwrite',
+                            autorename: false
+                        }),
+                        'Content-Type': 'application/octet-stream'
                     },
-                    body: formData
+                    body: JSON.stringify(dataToSync, null, 2)
                 });
                 
                 if (response.ok) {
                     localStorage.setItem('lastModified', timestamp);
                     lastSyncTime = Date.now();
                     updateSyncStatus('synced', 'Synced');
-                    console.log('Synced to Drive');
+                    console.log('Synced to Dropbox');
                 } else {
-                    throw new Error('Sync failed: ' + response.statusText);
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
             } catch (error) {
-                console.error('Error syncing to Drive:', error);
+                console.error('Error syncing to Dropbox:', error);
                 updateSyncStatus('error', 'Sync Failed');
             } finally {
                 isSyncing = false;
@@ -2458,20 +2174,31 @@
         
         // Manual Sync
         async function manualSync() {
-            if (!googleAccessToken || !driveFileId) {
-                alert('Please sign in to Google Drive first');
+            if (!dropboxConnected) {
+                alert('Please add your Dropbox Access Token in the code first');
                 return;
             }
             
-            await syncToDrive();
+            await syncToDropbox();
+        }
+        
+        // Handle Disconnect
+        function handleDisconnect() {
+            if (confirm('Disconnect from Dropbox? Your local data will be preserved.')) {
+                dropboxConnected = false;
+                stopAutoSync();
+                updateSyncUI(false);
+                alert('To reconnect, you need to update the DROPBOX_ACCESS_TOKEN in the HTML file.');
+            }
         }
         
         // Auto Sync Functions
         function startAutoSync() {
-            if (autoSyncEnabled && googleAccessToken && !autoSyncInterval) {
+            if (autoSyncEnabled && dropboxConnected && !autoSyncInterval) {
                 autoSyncInterval = setInterval(() => {
-                    syncToDrive();
+                    syncToDropbox();
                 }, 30000); // Sync every 30 seconds
+                console.log('Auto-sync started');
             }
         }
         
@@ -2479,6 +2206,7 @@
             if (autoSyncInterval) {
                 clearInterval(autoSyncInterval);
                 autoSyncInterval = null;
+                console.log('Auto-sync stopped');
             }
         }
         
@@ -2529,9 +2257,9 @@
                         saveData();
                         renderInventoryTable();
                         
-                        // Sync to Drive if signed in
-                        if (googleAccessToken && driveFileId) {
-                            syncToDrive();
+                        // Sync to Dropbox if connected
+                        if (dropboxConnected) {
+                            syncToDropbox();
                         }
                         
                         alert('Data imported successfully!');
@@ -2554,103 +2282,14 @@
         const savedAutoSync = localStorage.getItem('autoSyncEnabled');
         if (savedAutoSync !== null) {
             autoSyncEnabled = savedAutoSync === 'true';
-            document.getElementById('autoSyncEnabled').checked = autoSyncEnabled;
+            const autoSyncCheckbox = document.getElementById('autoSyncEnabled');
+            if (autoSyncCheckbox) {
+                autoSyncCheckbox.checked = autoSyncEnabled;
+            }
         }
         
-        // Initialize Google Drive API
-        initGoogleAPI();
+        // Initialize Dropbox connection
+        checkDropboxConnection();
     </script>
-    
-    <!--
-    
-    ====================================================================================================
-    GOOGLE DRIVE SETUP INSTRUCTIONS
-    ====================================================================================================
-    
-    To enable Google Drive sync, you need to create your own Google Cloud Project and get API credentials.
-    This is FREE and only takes about 5-10 minutes. Follow these steps:
-    
-    STEP 1: Create a Google Cloud Project
-    ----------------------------------------
-    1. Go to: https://console.cloud.google.com/
-    2. Click "Create Project" or select an existing project
-    3. Give it a name like "Pants Tracker"
-    4. Click "Create"
-    
-    STEP 2: Enable the Google Drive API
-    ----------------------------------------
-    1. In your project, go to "APIs & Services" > "Library"
-    2. Search for "Google Drive API"
-    3. Click on it and click "Enable"
-    
-    STEP 3: Create OAuth 2.0 Credentials
-    ----------------------------------------
-    1. Go to "APIs & Services" > "Credentials"
-    2. Click "Create Credentials" > "OAuth client ID"
-    3. If prompted, configure the OAuth consent screen:
-       - User Type: External
-       - App name: "Pants Tracker"
-       - User support email: Your email
-       - Developer contact: Your email
-       - Scopes: No need to add any
-       - Test users: Add your email address
-       - Click "Save and Continue" through the steps
-    
-    4. Back in Credentials, click "Create Credentials" > "OAuth client ID"
-    5. Application type: "Web application"
-    6. Name: "Pants Tracker Web Client"
-    7. Authorized JavaScript origins: 
-       - Add: http://localhost (if testing locally)
-       - Add: https://yourdomain.com (if hosted)
-       - Or just add: http://localhost and file:// for local testing
-    8. Click "Create"
-    9. COPY the Client ID - it will look like: "123456789-abcdefg.apps.googleusercontent.com"
-    
-    STEP 4: Create API Key
-    ----------------------------------------
-    1. Still in "APIs & Services" > "Credentials"
-    2. Click "Create Credentials" > "API Key"
-    3. COPY the API Key
-    4. Click "Restrict Key" (recommended)
-    5. Under "API restrictions", select "Restrict key"
-    6. Choose "Google Drive API"
-    7. Click "Save"
-    
-    STEP 5: Update This File
-    ----------------------------------------
-    1. Find line ~2002 in this file where it says:
-       const GOOGLE_CLIENT_ID = 'YOUR_CLIENT_ID_HERE.apps.googleusercontent.com';
-       const GOOGLE_API_KEY = 'YOUR_API_KEY_HERE';
-    
-    2. Replace with your actual values:
-       const GOOGLE_CLIENT_ID = '123456789-abcdefg.apps.googleusercontent.com';
-       const GOOGLE_API_KEY = 'AIzaSyAbc123def456...';
-    
-    3. Save the file
-    
-    STEP 6: Test It!
-    ----------------------------------------
-    1. Open the HTML file in your browser
-    2. Go to the Settings tab
-    3. Click "Sign in with Google Drive"
-    4. Grant permissions
-    5. Your data will now sync automatically!
-    
-    TROUBLESHOOTING:
-    ----------------------------------------
-    - If you get "Access blocked": Make sure you added your email as a test user in OAuth consent screen
-    - If sign-in doesn't work: Check that your Authorized JavaScript origins match your URL
-    - If you're testing locally: Use http://localhost or open via a local web server
-    
-    PRIVACY & SECURITY:
-    ----------------------------------------
-    - Your credentials are safe to put in this file if you're the only user
-    - Your data is stored in YOUR Google Drive, not shared with anyone
-    - The app only requests access to files it creates (not your entire Drive)
-    - You can revoke access anytime at: https://myaccount.google.com/permissions
-    
-    ====================================================================================================
-    
-    -->
 </body>
 </html>
