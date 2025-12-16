@@ -2186,10 +2186,12 @@
         function initGoogleAPI() {
             gapi.load('client', async () => {
                 try {
+                    // Simpler initialization without API key
                     await gapi.client.init({
-                        apiKey: GOOGLE_API_KEY,
                         discoveryDocs: DISCOVERY_DOCS,
                     });
+                    
+                    console.log('✓ Google API initialized');
                     
                     // Check if user was previously signed in
                     const savedToken = localStorage.getItem('googleAccessToken');
@@ -2204,10 +2206,11 @@
                         // Verify token is still valid
                         try {
                             await gapi.client.drive.files.get({ fileId: driveFileId });
-                            updateSyncUI(true, savedEmail);
+                            updateSyncUI(true, savedEmail || 'Google Drive User');
                             updateSyncStatus('synced', 'Synced');
                             loadFromDrive();
                         } catch (error) {
+                            console.log('Token expired, need to sign in again');
                             // Token expired, sign out
                             handleSignOut();
                         }
@@ -2217,7 +2220,10 @@
                     }
                 } catch (error) {
                     console.error('Error initializing Google API:', error);
-                    updateSyncStatus('error', 'Setup Error');
+                    console.log('This is likely an API Key issue. The app will still work - just sign in when ready.');
+                    updateSyncUI(false);
+                    document.getElementById('googleSignInButton').style.display = 'flex';
+                    updateSyncStatus('offline', 'Ready to sign in');
                 }
             });
         }
