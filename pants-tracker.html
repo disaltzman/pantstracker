@@ -611,7 +611,6 @@
             <button class="tab" onclick="switchTab('settings')">Settings</button>
         </div>
 
-        <!-- Inventory Tab -->
         <div id="inventory" class="tab-content active">
             <h2 style="margin-bottom: 20px; color: var(--text-primary);">Pants Inventory</h2>
             
@@ -711,8 +710,7 @@
                         <input type="text" id="pantsTempRange" placeholder="e.g., 60-80" required>
                     </div>
                     <div class="form-group">
-                        <!-- Empty for spacing -->
-                    </div>
+                        </div>
                 </div>
                 <div class="form-group">
                     <label for="pantsNotes">Notes (optional)</label>
@@ -770,7 +768,6 @@
             <div id="inventoryTable"></div>
         </div>
 
-        <!-- Daily Log Tab -->
         <div id="log" class="tab-content">
             <h2 style="margin-bottom: 20px; color: var(--text-primary);">Daily Wear Log</h2>
             
@@ -807,7 +804,6 @@
             <div id="wearHistory"></div>
         </div>
 
-        <!-- Recommendations Tab -->
         <div id="recommendations" class="tab-content">
             <h2 style="margin-bottom: 20px; color: var(--text-primary);">Smart Recommendations</h2>
             
@@ -854,13 +850,11 @@
             <div id="recommendationResult"></div>
         </div>
 
-        <!-- Statistics Tab -->
         <div id="stats" class="tab-content">
             <h2 style="margin-bottom: 20px; color: var(--text-primary);">Wardrobe Statistics</h2>
             <div id="statsContent"></div>
         </div>
 
-        <!-- Settings Tab -->
         <div id="settings" class="tab-content">
             <h2 style="margin-bottom: 20px; color: var(--text-primary);">Settings</h2>
             
@@ -956,7 +950,6 @@
         </div>
     </div>
 
-    <!-- Wash History Modal -->
     <div id="washHistoryModal" class="modal" onclick="if(event.target === this) closeWashHistoryModal()">
         <div class="modal-content">
             <div class="modal-header">
@@ -1217,7 +1210,7 @@
                 
                 // Get last washed date
                 const lastWashed = pants.washHistory.length > 0 
-                    ? new Date(pants.washHistory[pants.washHistory.length - 1]).toLocaleDateString()
+                    ? new Date(pants.washHistory[pants.washHistory.length - 1] + 'T00:00:00').toLocaleDateString()
                     : '-';
                 
                 html += `
@@ -1244,7 +1237,7 @@
                             }
                         </td>
                         <td>${lastWashed}</td>
-                        <td>${pants.lastWorn ? new Date(pants.lastWorn).toLocaleDateString() : '-'}</td>
+                        <td>${pants.lastWorn ? new Date(pants.lastWorn + 'T00:00:00').toLocaleDateString() : '-'}</td>
                         <td>
                             <div class="action-buttons" style="flex-direction: column; gap: 4px;">
                                 <button class="btn-secondary" onclick="markAsWashed(${pants.id})" style="font-size: 0.85em; padding: 4px 8px;">🧼 Washed</button>
@@ -1475,7 +1468,7 @@
                 html += `
                     <div class="wear-log-entry">
                         <div>
-                            <div class="date">${new Date(log.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                            <div class="date">${new Date(log.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
                             <div><strong>${pants.brand} ${pants.model}</strong> - ${pants.color} (${pants.style})</div>
                             ${log.temperature ? `<div style="color: var(--text-secondary); font-size: 0.9em;">Temperature: ${log.temperature}°F</div>` : ''}
                             ${log.notes ? `<div style="color: var(--text-secondary); font-size: 0.9em; margin-top: 5px;">${log.notes}</div>` : ''}
@@ -1723,7 +1716,7 @@
                     <p>Color: ${recommended.color} | Style: ${recommended.style}</p>
                     <p>Fabric: ${recommended.fabricType} | Weight: ${recommended.fabricWeight} | Temp Range: ${recommended.tempRange}°F</p>
                     <p>Worn ${recommended.wearCount} time${recommended.wearCount !== 1 ? 's' : ''}</p>
-                    ${recommended.lastWorn ? `<p>Last worn: ${new Date(recommended.lastWorn).toLocaleDateString()} (${Math.floor((Date.now() - new Date(recommended.lastWorn)) / (1000 * 60 * 60 * 24))} days ago)</p>` : '<p>Never worn yet!</p>'}
+                    ${recommended.lastWorn ? `<p>Last worn: ${new Date(recommended.lastWorn + 'T00:00:00').toLocaleDateString()} (${Math.floor((Date.now() - new Date(recommended.lastWorn)) / (1000 * 60 * 60 * 24))} days ago)</p>` : '<p>Never worn yet!</p>'}
                 </div>
                 
                 ${alternatives.length > 0 ? `
@@ -1919,7 +1912,7 @@
                 `;
                 
                 sortedHistory.forEach((washDate, index) => {
-                    const date = new Date(washDate);
+                    const date = new Date(washDate + 'T00:00:00');
                     const daysAgo = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
                     const agoText = daysAgo === 0 ? 'Today' : daysAgo === 1 ? '1 day ago' : `${daysAgo} days ago`;
                     
@@ -1951,7 +1944,7 @@
             const pants = inventory.find(p => p.id === pantsId);
             if (!pants) return;
             
-            if (confirm(`Remove wash from ${new Date(washDate).toLocaleDateString()}?`)) {
+            if (confirm(`Remove wash from ${new Date(washDate + 'T00:00:00').toLocaleDateString()}?`)) {
                 // Remove the wash date from history
                 pants.washHistory = pants.washHistory.filter(d => d !== washDate);
                 
