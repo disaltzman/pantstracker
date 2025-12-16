@@ -1342,7 +1342,8 @@
             logWeatherInfo.innerHTML = '⏳ Getting your location...';
             
             if (!navigator.geolocation) {
-                logWeatherInfo.innerHTML = '❌ Geolocation is not supported by your browser.';
+                logWeatherInfo.innerHTML = '❌ Geolocation not supported. Please enter temperature manually.';
+                document.getElementById('logTemp').focus();
                 return;
             }
             
@@ -1350,7 +1351,8 @@
                 const position = await new Promise((resolve, reject) => {
                     navigator.geolocation.getCurrentPosition(resolve, reject, {
                         timeout: 10000,
-                        enableHighAccuracy: false
+                        enableHighAccuracy: false,
+                        maximumAge: 300000 // Accept cached position up to 5 minutes old
                     });
                 });
                 
@@ -1374,15 +1376,28 @@
                 logWeatherInfo.innerHTML = `✅ Temperature set to ${Math.round(temp)}°F`;
                 
             } catch (error) {
+                let errorMessage = '';
+                
                 if (error.code === 1) {
-                    logWeatherInfo.innerHTML = '❌ Location access denied. Please enable location permissions.';
+                    errorMessage = '❌ Location denied. Enable in browser settings or enter manually.';
                 } else if (error.code === 2) {
-                    logWeatherInfo.innerHTML = '❌ Location unavailable.';
+                    errorMessage = '❌ Location unavailable. Check device settings or enter manually.';
                 } else if (error.code === 3) {
-                    logWeatherInfo.innerHTML = '❌ Location request timeout.';
+                    errorMessage = '❌ Request timed out. Try again or enter manually.';
+                } else if (error.message) {
+                    errorMessage = `❌ Error: ${error.message}`;
                 } else {
-                    logWeatherInfo.innerHTML = `❌ Error: ${error.message}`;
+                    errorMessage = '❌ Could not get location. Enter manually.';
                 }
+                
+                logWeatherInfo.innerHTML = errorMessage;
+                
+                // Focus on manual input
+                const tempInput = document.getElementById('logTemp');
+                if (tempInput) {
+                    tempInput.focus();
+                }
+                
                 console.error('Weather fetch error:', error);
             }
         }
@@ -1524,7 +1539,8 @@
             
             // Get user's location
             if (!navigator.geolocation) {
-                weatherInfo.innerHTML = '❌ Geolocation is not supported by your browser.';
+                weatherInfo.innerHTML = '❌ Geolocation not supported. Please enter temperature manually below.';
+                document.getElementById('currentTemp').focus();
                 return;
             }
             
@@ -1532,7 +1548,8 @@
                 const position = await new Promise((resolve, reject) => {
                     navigator.geolocation.getCurrentPosition(resolve, reject, {
                         timeout: 10000,
-                        enableHighAccuracy: false
+                        enableHighAccuracy: false,
+                        maximumAge: 300000 // Accept cached position up to 5 minutes old
                     });
                 });
                 
@@ -1562,15 +1579,34 @@
                 generateRecommendation(temp, container);
                 
             } catch (error) {
+                // More user-friendly error handling
+                let errorMessage = '';
+                
                 if (error.code === 1) {
-                    weatherInfo.innerHTML = '❌ Location access denied. Please enable location permissions or enter temperature manually.';
+                    errorMessage = '❌ Location access denied. Enable location in your browser settings, or enter temperature manually below.';
                 } else if (error.code === 2) {
-                    weatherInfo.innerHTML = '❌ Location unavailable. Please enter temperature manually.';
+                    errorMessage = '❌ Location unavailable. Check your device location settings, or enter temperature manually below.';
                 } else if (error.code === 3) {
-                    weatherInfo.innerHTML = '❌ Location request timeout. Please try again or enter temperature manually.';
+                    errorMessage = '❌ Location request timed out. Try again, or enter temperature manually below.';
+                } else if (error.message) {
+                    errorMessage = `❌ Error: ${error.message}. Please enter temperature manually below.`;
                 } else {
-                    weatherInfo.innerHTML = `❌ Error fetching weather: ${error.message}. Please enter temperature manually.`;
+                    errorMessage = '❌ Could not get location. Please enter temperature manually below.';
                 }
+                
+                weatherInfo.innerHTML = errorMessage;
+                
+                // Focus on the manual input field to guide user
+                const tempInput = document.getElementById('currentTemp');
+                if (tempInput) {
+                    tempInput.focus();
+                    // Add a subtle highlight
+                    tempInput.style.border = '2px solid #667eea';
+                    setTimeout(() => {
+                        tempInput.style.border = '';
+                    }, 2000);
+                }
+                
                 console.error('Weather fetch error:', error);
             }
         }
