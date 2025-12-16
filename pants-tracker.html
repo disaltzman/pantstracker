@@ -2170,11 +2170,11 @@
         
         // IMPORTANT: Replace this with your own Google Client ID
         // Instructions for getting your Client ID are at the bottom of this file
-        const GOOGLE_CLIENT_ID = '897181272476-cq52hph2ohvip46os8n8omo5q3fhg2q8.apps.googleusercontent.com';
-        const GOOGLE_API_KEY = 'AIzaSyC23-FJWrUqyn6KUJFxHGpjVprg62FDbno';
+        const GOOGLE_CLIENT_ID = 'YOUR_CLIENT_ID_HERE.apps.googleusercontent.com';
+        const GOOGLE_API_KEY = 'YOUR_API_KEY_HERE';
         const DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
-        const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email';  
-              
+        const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+        
         let googleAccessToken = null;
         let driveFileId = null;
         let autoSyncInterval = null;
@@ -2233,12 +2233,8 @@
                             googleAccessToken = response.access_token;
                             gapi.client.setToken({ access_token: googleAccessToken });
                             
-                            // Get user info
-                            const userInfo = await gapi.client.request({
-                                path: 'https://www.googleapis.com/oauth2/v2/userinfo'
-                            });
-                            
-                            const userEmail = userInfo.result.email;
+                            // Use a placeholder for email (avoids API key restriction issues)
+                            const userEmail = 'Google Drive User';
                             localStorage.setItem('googleAccessToken', googleAccessToken);
                             localStorage.setItem('userEmail', userEmail);
                             
