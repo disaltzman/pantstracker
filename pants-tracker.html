@@ -704,14 +704,6 @@
                         <input type="text" id="pantsFabricWeightOz" placeholder="e.g., 12">
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="pantsTempRange">Temperature Range (°F)</label>
-                        <input type="text" id="pantsTempRange" placeholder="e.g., 60-80" required>
-                    </div>
-                    <div class="form-group">
-                        </div>
-                </div>
                 <div class="form-group">
                     <label for="pantsNotes">Notes (optional)</label>
                     <textarea id="pantsNotes" rows="2"></textarea>
@@ -830,21 +822,21 @@
                     </div>
                 </div>
                 
-                <div class="info-box" style="background: #e3f2fd;">
-                    <p style="margin-bottom: 10px; color: #1565c0;"><strong>📍 Auto-detect weather</strong></p>
-                    <p style="font-size: 0.9em; margin-bottom: 10px;">Click below to use your location and get current weather automatically.</p>
-                    <button onclick="getWeatherAndRecommend()" style="margin-right: 10px;">🌡️ Get Weather & Recommend</button>
-                    <div id="weatherInfo" style="margin-top: 10px; font-size: 0.9em; color: #666;"></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fabricWeightPreference">Fabric Weight</label>
+                        <select id="fabricWeightPreference">
+                            <option value="any">Any Weight</option>
+                            <option value="Lightweight">Lightweight (Summer)</option>
+                            <option value="Medium">Medium (Spring/Fall)</option>
+                            <option value="Heavyweight">Heavyweight (Winter)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                    </div>
                 </div>
                 
-                <div style="border-top: 2px solid var(--border-color); padding-top: 15px; margin-top: 15px;">
-                    <p style="margin-bottom: 10px; color: var(--text-secondary);"><strong>Or enter temperature manually:</strong></p>
-                    <div class="form-group">
-                        <label for="currentTemp">Current Temperature (°F)</label>
-                        <input type="number" id="currentTemp" placeholder="e.g., 68">
-                    </div>
-                    <button onclick="getRecommendation()">Get Recommendation</button>
-                </div>
+                <button onclick="getRecommendation()">Get Recommendation</button>
             </div>
 
             <div id="recommendationResult"></div>
@@ -1051,7 +1043,6 @@
                 fabricType: document.getElementById('pantsFabricType').value,
                 fabricWeight: document.getElementById('pantsFabricWeight').value,
                 fabricWeightOz: document.getElementById('pantsFabricWeightOz').value || null,
-                tempRange: document.getElementById('pantsTempRange').value,
                 notes: document.getElementById('pantsNotes').value,
                 wearCount: 0,
                 lastWorn: null,
@@ -1170,7 +1161,6 @@
                             <th>Fabric Type</th>
                             <th>Weight</th>
                             <th>Weight (oz)</th>
-                            <th>Temp Range</th>
                             <th>Total Wears</th>
                             <th>Since Wash</th>
                             <th>Times Washed</th>
@@ -1221,7 +1211,6 @@
                         <td>${pants.fabricType}</td>
                         <td>${pants.fabricWeight}</td>
                         <td>${pants.fabricWeightOz || '-'}</td>
-                        <td>${pants.tempRange}°F</td>
                         <td><strong style="color: ${wearColor}; font-size: 1.1em;">${pants.wearCount}</strong></td>
                         <td><strong style="color: #667eea; font-size: 1.1em;">${pants.wearsSinceWash}</strong></td>
                         <td>
@@ -1450,6 +1439,7 @@
             document.getElementById('logDate').valueAsDate = new Date();
             document.getElementById('logWeatherInfo').innerHTML = '';
             renderWearHistory();
+            renderInventoryTable(); // Update inventory to show new wear count
             alert('Wear logged successfully!');
         });
 
@@ -1509,110 +1499,18 @@
                 wearLog = wearLog.filter(l => l.id !== id);
                 saveData();
                 renderWearHistory();
+                renderInventoryTable(); // Update inventory to show decreased wear count
             }
         }
 
         // Get recommendation
         function getRecommendation() {
-            const temp = parseFloat(document.getElementById('currentTemp').value);
             const container = document.getElementById('recommendationResult');
-            
-            if (!temp) {
-                container.innerHTML = `
-                    <div class="recommendation-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                        <h3>⚠️ Temperature Required</h3>
-                        <p>Please enter the current temperature to get a recommendation.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            generateRecommendation(temp, container);
+            generateRecommendation(container);
         }
 
-        // Fetch weather and get recommendation
-        async function getWeatherAndRecommend() {
-            const weatherInfo = document.getElementById('weatherInfo');
-            const container = document.getElementById('recommendationResult');
-            
-            weatherInfo.innerHTML = '⏳ Getting your location...';
-            
-            // Get user's location
-            if (!navigator.geolocation) {
-                weatherInfo.innerHTML = '❌ Geolocation not supported. Please enter temperature manually below.';
-                document.getElementById('currentTemp').focus();
-                return;
-            }
-            
-            try {
-                const position = await new Promise((resolve, reject) => {
-                    navigator.geolocation.getCurrentPosition(resolve, reject, {
-                        timeout: 10000,
-                        enableHighAccuracy: false,
-                        maximumAge: 300000 // Accept cached position up to 5 minutes old
-                    });
-                });
-                
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-                
-                weatherInfo.innerHTML = '⏳ Fetching weather data...';
-                
-                // Fetch weather from Open-Meteo (free, no API key needed)
-                const weatherResponse = await fetch(
-                    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m&temperature_unit=fahrenheit&forecast_days=1`
-                );
-                
-                if (!weatherResponse.ok) {
-                    throw new Error('Weather API request failed');
-                }
-                
-                const weatherData = await weatherResponse.json();
-                const temp = weatherData.current.temperature_2m;
-                
-                // Also set the manual input field
-                document.getElementById('currentTemp').value = Math.round(temp);
-                
-                weatherInfo.innerHTML = `✅ Current temperature: <strong>${Math.round(temp)}°F</strong> at your location`;
-                
-                // Generate recommendation with the fetched temperature
-                generateRecommendation(temp, container);
-                
-            } catch (error) {
-                // More user-friendly error handling
-                let errorMessage = '';
-                
-                if (error.code === 1) {
-                    errorMessage = '❌ Location access denied. Enable location in your browser settings, or enter temperature manually below.';
-                } else if (error.code === 2) {
-                    errorMessage = '❌ Location unavailable. Check your device location settings, or enter temperature manually below.';
-                } else if (error.code === 3) {
-                    errorMessage = '❌ Location request timed out. Try again, or enter temperature manually below.';
-                } else if (error.message) {
-                    errorMessage = `❌ Error: ${error.message}. Please enter temperature manually below.`;
-                } else {
-                    errorMessage = '❌ Could not get location. Please enter temperature manually below.';
-                }
-                
-                weatherInfo.innerHTML = errorMessage;
-                
-                // Focus on the manual input field to guide user
-                const tempInput = document.getElementById('currentTemp');
-                if (tempInput) {
-                    tempInput.focus();
-                    // Add a subtle highlight
-                    tempInput.style.border = '2px solid #667eea';
-                    setTimeout(() => {
-                        tempInput.style.border = '';
-                    }, 2000);
-                }
-                
-                console.error('Weather fetch error:', error);
-            }
-        }
-
-        // Generate recommendation based on temperature
-        function generateRecommendation(temp, container) {
+        // Generate recommendation based on fabric weight
+        function generateRecommendation(container) {
             if (inventory.length === 0) {
                 container.innerHTML = `
                     <div class="recommendation-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
@@ -1626,15 +1524,15 @@
             // Get user preferences
             const wearPreference = document.getElementById('wearPreference').value;
             const denimPreference = document.getElementById('denimPreference').value;
+            const fabricWeightPref = document.getElementById('fabricWeightPreference').value;
 
-            // Filter by temperature range
-            let candidates = inventory.filter(pants => {
-                const range = pants.tempRange.split('-').map(n => parseFloat(n.trim()));
-                if (range.length === 2) {
-                    return temp >= range[0] && temp <= range[1];
-                }
-                return true; // Include if temp range is malformed
-            });
+            // Start with all inventory
+            let candidates = [...inventory];
+            
+            // Filter by fabric weight if specified
+            if (fabricWeightPref !== 'any') {
+                candidates = candidates.filter(pants => pants.fabricWeight === fabricWeightPref);
+            }
 
             // Filter by denim preference
             if (denimPreference === 'denim-only') {
@@ -1652,7 +1550,10 @@
             }
 
             if (candidates.length === 0) {
-                let message = `No pants match the current temperature (${Math.round(temp)}°F)`;
+                let message = 'No pants match your selected filters';
+                if (fabricWeightPref !== 'any') {
+                    message += ` (${fabricWeightPref} fabric weight)`;
+                }
                 if (denimPreference === 'denim-only') {
                     message += ' and denim/jeans filter';
                 } else if (denimPreference === 'no-denim') {
@@ -1662,9 +1563,9 @@
                 
                 container.innerHTML = `
                     <div class="recommendation-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
-                        <h3>🌡️ No Match Found</h3>
+                        <h3>🔍 No Match Found</h3>
                         <p>${message}</p>
-                        <p>Try adjusting your preferences or temperature range.</p>
+                        <p>Try adjusting your preferences.</p>
                     </div>
                 `;
                 return;
@@ -1705,14 +1606,6 @@
                     }
                 }
                 
-                // Prefer exact temperature match (always applied)
-                const range = pants.tempRange.split('-').map(n => parseFloat(n.trim()));
-                if (range.length === 2) {
-                    const midpoint = (range[0] + range[1]) / 2;
-                    const tempDiff = Math.abs(temp - midpoint);
-                    score += Math.max(0, 20 - tempDiff);
-                }
-                
                 return { pants, score };
             });
 
@@ -1725,12 +1618,15 @@
             
             // Create preference description
             let prefDescription = '';
+            if (fabricWeightPref !== 'any') {
+                prefDescription = ` ${fabricWeightPref}`;
+            }
             if (wearPreference === 'least-worn') {
-                prefDescription = ' (prioritizing least worn)';
+                prefDescription += ' (prioritizing least worn)';
             } else if (wearPreference === 'most-worn') {
-                prefDescription = ' (prioritizing favorites)';
+                prefDescription += ' (prioritizing favorites)';
             } else if (wearPreference === 'not-recent') {
-                prefDescription = ' (prioritizing not worn recently)';
+                prefDescription += ' (prioritizing not worn recently)';
             }
             
             if (denimPreference === 'denim-only') {
@@ -1741,10 +1637,10 @@
 
             container.innerHTML = `
                 <div class="recommendation-card">
-                    <h3>✨ Recommended for ${Math.round(temp)}°F${prefDescription}</h3>
+                    <h3>✨ Recommended${prefDescription}</h3>
                     <p style="font-size: 1.5em; margin: 15px 0;"><strong>${recommended.brand} ${recommended.model}</strong></p>
                     <p>Color: ${recommended.color} | Style: ${recommended.style}</p>
-                    <p>Fabric: ${recommended.fabricType} | Weight: ${recommended.fabricWeight} | Temp Range: ${recommended.tempRange}°F</p>
+                    <p>Fabric: ${recommended.fabricType} | Weight: ${recommended.fabricWeight}${recommended.fabricWeightOz ? ' (' + recommended.fabricWeightOz + ' oz)' : ''}</p>
                     <p>Worn ${recommended.wearCount} time${recommended.wearCount !== 1 ? 's' : ''}</p>
                     ${recommended.lastWorn ? `<p>Last worn: ${new Date(recommended.lastWorn + 'T00:00:00').toLocaleDateString()} (${Math.floor((Date.now() - new Date(recommended.lastWorn)) / (1000 * 60 * 60 * 24))} days ago)</p>` : '<p>Never worn yet!</p>'}
                 </div>
@@ -1755,7 +1651,7 @@
                         <div style="background: var(--section-bg); padding: 15px; border-radius: 8px; margin-bottom: 10px;">
                             <strong>${alt.pants.brand} ${alt.pants.model}</strong> - ${alt.pants.color} (${alt.pants.style})
                             <div style="color: var(--text-secondary); font-size: 0.9em; margin-top: 5px;">
-                                Worn ${alt.pants.wearCount} times | ${alt.pants.fabricType} | ${alt.pants.fabricWeight} | ${alt.pants.tempRange}°F
+                                Worn ${alt.pants.wearCount} times | ${alt.pants.fabricType} | ${alt.pants.fabricWeight}
                                 ${alt.pants.lastWorn ? ` | Last worn ${Math.floor((Date.now() - new Date(alt.pants.lastWorn)) / (1000 * 60 * 60 * 24))} days ago` : ' | Never worn'}
                             </div>
                         </div>
@@ -2139,6 +2035,8 @@
                         localStorage.setItem('lastModified', dropboxTimestamp);
                         saveData(); // Save to localStorage
                         renderInventoryTable();
+                        renderWearHistory(); // Update wear log display
+                        updateLogPantsDropdown(); // Update dropdown
                         console.log('Loaded data from Dropbox');
                     } else if (localTimestamp > dropboxTimestamp) {
                         // Local data is newer, sync it to Dropbox
@@ -2306,6 +2204,8 @@
                         wearLog = importedData.wearLog || [];
                         saveData();
                         renderInventoryTable();
+                        renderWearHistory();
+                        updateLogPantsDropdown();
                         
                         // Sync to Dropbox if connected
                         if (dropboxConnected) {
@@ -2326,6 +2226,7 @@
         loadTheme();
         loadData();
         renderInventoryTable();
+        renderWearHistory();
         updateLogPantsDropdown();
         
         // Load auto-sync preference
