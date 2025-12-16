@@ -861,38 +861,32 @@
             <div class="sync-settings">
                 <h3 style="margin-bottom: 15px; color: var(--text-primary);">☁️ Dropbox Sync</h3>
                 
-                <div id="syncNotConnected" style="display: block;">
+                <div id="syncNotConnected" style="display: none;">
                     <p style="color: var(--text-secondary); margin-bottom: 15px;">
-                        Connect to Dropbox to automatically sync your data across all devices.
+                        Connect to Dropbox to securely sync your data across all devices. Your data is private and requires your token.
                     </p>
                     
                     <div style="background: var(--section-bg); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 2px solid #0061ff;">
-                        <h4 style="color: var(--text-primary); margin-bottom: 10px;">📝 Quick Setup (5 minutes):</h4>
-                        <ol style="color: var(--text-secondary); margin-left: 20px; line-height: 1.8;">
-                            <li><strong>Go to:</strong> <a href="https://www.dropbox.com/developers/apps/create" target="_blank" style="color: #0061ff;">dropbox.com/developers/apps/create</a></li>
-                            <li><strong>Choose:</strong> "Scoped access" → "App folder"</li>
-                            <li><strong>Name your app:</strong> "Pants Tracker" (or anything)</li>
-                            <li><strong>Click "Create app"</strong></li>
-                            <li><strong>In the app settings:</strong>
-                                <ul style="margin-left: 20px; margin-top: 5px;">
-                                    <li>Go to "Permissions" tab</li>
-                                    <li>Check: <strong>files.content.write</strong> and <strong>files.content.read</strong></li>
-                                    <li>Click "Submit" at the bottom</li>
-                                </ul>
-                            </li>
-                            <li><strong>Go back to "Settings" tab</strong></li>
-                            <li><strong>Scroll to "Generated access token"</strong></li>
-                            <li><strong>Click "Generate"</strong> → Copy the token (long string starting with "sl.")</li>
-                            <li><strong>Open this HTML file in a text editor</strong></li>
-                            <li><strong>Find line ~1766:</strong> <code style="background: var(--input-bg); padding: 2px 6px; border-radius: 4px;">const DROPBOX_ACCESS_TOKEN = 'YOUR_DROPBOX_ACCESS_TOKEN_HERE';</code></li>
-                            <li><strong>Replace</strong> with your token: <code style="background: var(--input-bg); padding: 2px 6px; border-radius: 4px;">const DROPBOX_ACCESS_TOKEN = 'sl.your-token-here';</code></li>
-                            <li><strong>Save the file</strong></li>
-                            <li><strong>Refresh this page</strong> → You're connected! ✅</li>
+                        <h4 style="color: var(--text-primary); margin-bottom: 10px;">1. Get Your Access Token:</h4>
+                        <ol style="color: var(--text-secondary); margin-left: 20px; line-height: 1.8; font-size: 0.9em;">
+                            <li>Go to: <a href="https://www.dropbox.com/developers/apps/create" target="_blank" style="color: #0061ff;">dropbox.com/developers/apps/create</a></li>
+                            <li>Choose: **Scoped access** → **App folder**</li>
+                            <li>Name your app (e.g., "Pants Tracker")</li>
+                            <li>In **Permissions**, check: **files.content.write** and **files.content.read**. Click "Submit".</li>
+                            <li>In **Settings**, scroll to **Generated access token**. Click "Generate".</li>
+                            <li>**Copy the long token string (starts with "sl.")**</li>
                         </ol>
+                        
+                        <h4 style="color: var(--text-primary); margin-top: 15px; margin-bottom: 10px;">2. Enter Token to Connect:</h4>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label for="dropboxTokenInput" style="font-weight: normal;">Dropbox Access Token (Paste Here)</label>
+                            <input type="text" id="dropboxTokenInput" placeholder="sl.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+                        </div>
+                        <button onclick="saveTokenAndConnect()">Connect & Sync</button>
                     </div>
                     
                     <p style="color: var(--text-secondary); font-size: 0.9em; margin-top: 10px;">
-                        <strong>💡 Tip:</strong> Your token is private - don't share it! It only works with your Dropbox.
+                        <strong>💡 Tip:</strong> Your token is private - it is only saved locally in this browser.
                     </p>
                 </div>
                 
@@ -916,7 +910,7 @@
                     
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <button onclick="manualSync()" class="btn-secondary">🔄 Sync Now</button>
-                        <button onclick="handleDisconnect()" style="background: #dc3545; color: white;">Disconnect</button>
+                        <button onclick="handleDisconnect()" style="background: #dc3545; color: white;">Disconnect (Forget Token)</button>
                     </div>
                     
                     <p style="color: var(--text-secondary); font-size: 0.85em; margin-top: 15px;">
@@ -940,7 +934,7 @@
             <div class="sync-settings">
                 <h3 style="margin-bottom: 15px; color: var(--text-primary);">ℹ️ About</h3>
                 <p style="color: var(--text-secondary); margin-bottom: 10px;">
-                    <strong>Version:</strong> 2.0 with Dropbox Sync
+                    <strong>Version:</strong> 2.0 with Private Token Sync
                 </p>
                 <p style="color: var(--text-secondary); font-size: 0.9em;">
                     Your data is stored locally in your browser and optionally synced to your Dropbox. 
@@ -1977,13 +1971,12 @@
         }
 
         // ========================================
-        // DROPBOX SYNC FUNCTIONALITY
+        // DROPBOX SYNC FUNCTIONALITY (Private Key Model)
         // ========================================
         
-        // IMPORTANT: Replace this with your Dropbox Access Token
-        // Get it from: https://www.dropbox.com/developers/apps
-        // Instructions in the Settings tab
-        const DROPBOX_ACCESS_TOKEN = 'sl.u.AGLhigsDidYV315Q6Wf6sxHBF0KlRwaQUhNfDuj0q1XzGewDowrIhrswGq0o1WdU0QiRkoJIb0w6J0PZBqvcNJWHWB33PlpDMS55IGHufFgG9Cs_Phj5MuLMWygU69a6kcUNs3GlXdGEVabAcH8ksqyEr65iK4_vXTEnJUTioP0bYK-mbQ3D-gy1XvKz-q60C7HzGOfcfKMGD8vbbSBwPiO61fUbmrZRcZlNdEz0j1xA52m32Ao3qvZ_fxjfHKZCPLj9KK4LRZFAO1navxHHE1Je6Yj0XhP1-WtcNRyfDAn9t8lVMF0rfEPQnCGY4dvJgv-dEXW6-7SftXHZuxIu_VVLGtuz_eik09As79RZNA4n3_egmOfaDZAiGAPRmvgittfbmTFOu00Qk7V8N06GyPD59wKMspLrVvP94yZAiCbPuqDWp92x0QD3gUL4Vns0NC8OK_05FMjS4nm9tq8bX4LfQFHxavbaNWkFnhtlO0HDxEQWf9JzVMJvBJFRgYih3GOj5g5Y1X6ArZDYss4LpahMc2HdiQz6QMuyHV3FI13xY3s6HKBYvNtivSU6MQatwzMtSR3rQrN_82sQtMj4PWPMlYh7EMRClD6LErHbsvFZKsoYW-607bsrm8AO5oM9tDK-SUNn5jmLvXYnXvlIKvQgF32fLcPHRtHNENMUnv5oO2HflfJTtE5d36WYST4wxq2E9NH0p4_SGM4OucSl979L5aGKNc1k8vPxY9fJoVO_kK8Kg76LYXWezSYOptxeAIAKb1B7zUwF1RFnBk8a-shWiUE6NMiMOpQU9kZHtIavU-rf2L8vVcXFpqZ-_LiyBA9TMFJi9PMkIrd34n1RdbZ-TH-Ah0zvgZXH-36x58Qw3m7pG7qIezf-xmHYmTgGnxtiYN8d06sit_Llf3uOv2jPgXpMhFCrUvy7I3519NY-qc5oEheRarGHlmy729Av8bJ-wqTbklgb25tISdlT71-bqCdnm9tBA0SKFZhLqRBYapBbwdN-22Kf7JAMWGDD9CDliPaFc2Bbid6pM2Mh-dCwX1Z_HersGFK8h3OwARniPRgmD0gmAZH_5wGf9mp63poAsUKnizrG_lreYyp6tTmeKNQwrsSzVyclcTxEfGRNHKcfcz-TVf8r9JsD6Es7LiwZ0YLShiwDO7bagDJnhzUFDQP1cw3UD_xZ6Q-eli4yTnTYanvapE_o9oJCYMiaB3BldlYvduJrHHhMVGctKX6ehCyG45ADhXmi8wfr85ro9D5tM3jhRx1utwR4ylPVq8f1SstT_3zFAXUEywxDNj8I06bM9gK5bpcf71i8KZ6f_Q';
+        // IMPORTANT: Dropbox Access Token is now loaded from local storage for security.
+        // Do NOT hardcode your token here before pushing to a public repository like GitHub Pages.
+        let DROPBOX_ACCESS_TOKEN = localStorage.getItem('user_dropbox_token');
         const DROPBOX_FILE_PATH = '/pants-tracker-data.json';
         
         let dropboxConnected = false;
@@ -1992,41 +1985,61 @@
         let isSyncing = false;
         let lastSyncTime = null;
         
+        // Saves the token from the input field and attempts connection
+        function saveTokenAndConnect() {
+            const tokenInput = document.getElementById('dropboxTokenInput');
+            const token = tokenInput.value.trim();
+            
+            // Simple validation: must start with 'sl.' and be a certain length
+            if (token.length > 50 && token.startsWith('sl.')) {
+                localStorage.setItem('user_dropbox_token', token);
+                DROPBOX_ACCESS_TOKEN = token;
+                checkDropboxConnection();
+            } else {
+                alert('Please enter a valid Dropbox Access Token (must start with "sl." and be long).');
+                tokenInput.focus();
+            }
+        }
+        
         // Check if Dropbox is connected
         function checkDropboxConnection() {
-            if (DROPBOX_ACCESS_TOKEN && DROPBOX_ACCESS_TOKEN !== 'YOUR_DROPBOX_ACCESS_TOKEN_HERE') {
+            // Re-check local storage
+            DROPBOX_ACCESS_TOKEN = localStorage.getItem('user_dropbox_token'); 
+            
+            const notConnected = document.getElementById('syncNotConnected');
+            const connectedSection = document.getElementById('syncConnected');
+            
+            // Check if token is available
+            if (DROPBOX_ACCESS_TOKEN) {
                 dropboxConnected = true;
+                if (notConnected) notConnected.style.display = 'none';
+                if (connectedSection) connectedSection.style.display = 'block';
                 updateSyncUI(true);
                 loadFromDropbox();
                 startAutoSync();
             } else {
                 dropboxConnected = false;
-                updateSyncUI(false);
+                if (notConnected) notConnected.style.display = 'block';
+                if (connectedSection) connectedSection.style.display = 'none';
+                updateSyncStatus('offline', 'Local Only');
             }
         }
         
         // Update Sync UI
         function updateSyncUI(connected) {
-            const syncStatus = document.getElementById('syncStatus');
-            const connectButton = document.getElementById('connectDropboxButton');
-            const disconnectButton = document.getElementById('disconnectButton');
+            const statusElement = document.getElementById('syncStatus');
             const syncButton = document.getElementById('syncButton');
-            const notConnected = document.getElementById('syncNotConnected');
-            const connectedSection = document.getElementById('syncConnected');
+            const disconnectButton = document.getElementById('disconnectButton');
+            
+            if (!statusElement || !syncButton || !disconnectButton) return;
             
             if (connected) {
-                if (connectButton) connectButton.style.display = 'none';
-                if (syncButton) syncButton.style.display = 'block';
-                if (disconnectButton) disconnectButton.style.display = 'block';
-                if (notConnected) notConnected.style.display = 'none';
-                if (connectedSection) connectedSection.style.display = 'block';
+                syncButton.style.display = 'block';
+                disconnectButton.style.display = 'block';
                 updateSyncStatus('synced', 'Connected');
             } else {
-                if (connectButton) connectButton.style.display = 'block';
-                if (syncButton) syncButton.style.display = 'none';
-                if (disconnectButton) disconnectButton.style.display = 'none';
-                if (notConnected) notConnected.style.display = 'block';
-                if (connectedSection) connectedSection.style.display = 'none';
+                syncButton.style.display = 'none';
+                disconnectButton.style.display = 'none';
                 updateSyncStatus('offline', 'Local Only');
             }
         }
@@ -2062,7 +2075,7 @@
         
         // Load Data from Dropbox
         async function loadFromDropbox() {
-            if (!dropboxConnected || isSyncing) return;
+            if (!dropboxConnected || isSyncing || !DROPBOX_ACCESS_TOKEN) return;
             
             try {
                 isSyncing = true;
@@ -2120,7 +2133,7 @@
         
         // Sync Data to Dropbox
         async function syncToDropbox() {
-            if (!dropboxConnected || isSyncing) return;
+            if (!dropboxConnected || isSyncing || !DROPBOX_ACCESS_TOKEN) return;
             
             try {
                 isSyncing = true;
@@ -2167,21 +2180,29 @@
         
         // Manual Sync
         async function manualSync() {
-            if (!dropboxConnected) {
-                alert('Please add your Dropbox Access Token in the code first');
+            if (!dropboxConnected || !DROPBOX_ACCESS_TOKEN) {
+                alert('Please enter your Dropbox Access Token in the Settings tab first.');
                 return;
             }
             
             await syncToDropbox();
         }
         
-        // Handle Disconnect
+        // Handle Disconnect (Forget Token)
         function handleDisconnect() {
-            if (confirm('Disconnect from Dropbox? Your local data will be preserved.')) {
+            if (confirm('Disconnect from Dropbox? Your local data will be preserved, but your token will be removed from this device\'s browser storage. You will need to re-enter your token to sync again.')) {
+                localStorage.removeItem('user_dropbox_token');
+                DROPBOX_ACCESS_TOKEN = null;
                 dropboxConnected = false;
                 stopAutoSync();
-                updateSyncUI(false);
-                alert('To reconnect, you need to update the DROPBOX_ACCESS_TOKEN in the HTML file.');
+                
+                // Manually hide connected section and show setup section
+                const notConnected = document.getElementById('syncNotConnected');
+                const connectedSection = document.getElementById('syncConnected');
+                if (notConnected) notConnected.style.display = 'block';
+                if (connectedSection) connectedSection.style.display = 'none';
+                
+                updateSyncStatus('offline', 'Local Only');
             }
         }
         
