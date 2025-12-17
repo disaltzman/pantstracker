@@ -1,0 +1,2463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pants Inventory Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --page-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --container-bg: white;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --text-inverse: white;
+            --border-color: #ddd;
+            --input-bg: white;
+            --input-border: #ddd;
+            --tab-bg: #f5f5f5;
+            --tab-hover: #e8e8e8;
+            --section-bg: #f8f9fa;
+            --table-hover: #f8f9fa;
+            --shadow-color: rgba(0,0,0,0.3);
+        }
+
+        [data-theme="dark"] {
+            --bg-gradient-start: #1a1a2e;
+            --bg-gradient-end: #16213e;
+            --page-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --container-bg: #0f3460;
+            --text-primary: #e8e8e8;
+            --text-secondary: #b8b8b8;
+            --text-inverse: #e8e8e8;
+            --border-color: #2a4a6a;
+            --input-bg: #1a2332;
+            --input-border: #2a4a6a;
+            --tab-bg: #1a2332;
+            --tab-hover: #253447;
+            --section-bg: #1a2332;
+            --table-hover: #1e3a52;
+            --shadow-color: rgba(0,0,0,0.6);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--page-bg);
+            min-height: 100vh;
+            padding: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--container-bg);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px var(--shadow-color);
+            overflow: hidden;
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            color: white;
+            padding: 30px;
+            padding-bottom: 80px;
+            text-align: center;
+            position: relative;
+            min-height: 200px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+
+        /* Dropbox Sync Styles */
+        .sync-container {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .sync-status {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sync-status.synced {
+            background: rgba(76, 175, 80, 0.3);
+            border-color: rgba(76, 175, 80, 0.5);
+        }
+
+        .sync-status.syncing {
+            background: rgba(33, 150, 243, 0.3);
+            border-color: rgba(33, 150, 243, 0.5);
+        }
+
+        .sync-status.error {
+            background: rgba(244, 67, 54, 0.3);
+            border-color: rgba(244, 67, 54, 0.5);
+        }
+
+        .sync-status.offline {
+            background: rgba(158, 158, 158, 0.3);
+            border-color: rgba(158, 158, 158, 0.5);
+        }
+
+        .sync-button {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .sync-button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+
+        .sync-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .sync-settings {
+            background: var(--section-bg);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 2px solid var(--border-color);
+        }
+
+        .sync-settings h4 {
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .sync-settings label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+
+        .sync-settings input[type="checkbox"] {
+            width: auto;
+        }
+
+        .sync-settings a {
+            color: #0061ff;
+            text-decoration: none;
+        }
+
+        .sync-settings a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .sync-container {
+                position: static;
+                margin-top: 10px;
+                align-items: center;
+            }
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--tab-bg);
+            border-bottom: 2px solid var(--border-color);
+            transition: background 0.3s ease;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+            border: none;
+            background: none;
+            font-size: 16px;
+        }
+
+        .tab:hover {
+            background: var(--tab-hover);
+        }
+
+        .tab.active {
+            background: var(--container-bg);
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--input-border);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            background: var(--input-bg);
+            color: var(--text-primary);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        th {
+            background: var(--section-bg);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        tr:hover {
+            background: var(--table-hover);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .action-buttons button {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+
+        .recommendation-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .recommendation-card h3 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .recommendation-card p {
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: var(--section-bg);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid var(--border-color);
+            transition: background 0.3s ease;
+        }
+
+        .stat-card h4 {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .wear-log-entry {
+            background: var(--section-bg);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+
+        .wear-log-entry .date {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state svg {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-section {
+            background: var(--section-bg);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .info-box {
+            background: var(--section-bg);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+        }
+
+        .info-box p {
+            color: var(--text-secondary);
+        }
+
+        .filter-section {
+            background: var(--section-bg);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .theme-toggle {
+                position: static;
+                margin-bottom: 10px;
+            }
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: var(--container-bg);
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .wash-history-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .wash-history-item {
+            background: var(--section-bg);
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .wash-history-item > div {
+            flex: 1;
+        }
+
+        .wash-history-item .date {
+            font-weight: 600;
+            color: #667eea;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .wash-history-item .ago {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            display: block;
+        }
+
+        .wash-history-item .delete-wash {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .wash-history-item .delete-wash:hover {
+            background: #c82333;
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+            <div class="sync-container">
+                <div id="syncStatus" class="sync-status offline">
+                    <span id="syncStatusIcon">☁️</span>
+                    <span id="syncStatusText">Local Only</span>
+                </div>
+                <button id="syncButton" class="sync-button" onclick="manualSync()" style="display: none;">
+                    🔄 Sync Now
+                </button>
+                <button id="disconnectButton" class="sync-button" onclick="handleDisconnect()" style="display: none;">
+                    Disconnect
+                </button>
+            </div>
+            <h1>👖 Pants Inventory Tracker</h1>
+            <p>Manage your pants collection and get smart wear recommendations</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('inventory')">Inventory</button>
+            <button class="tab" onclick="switchTab('log')">Daily Log</button>
+            <button class="tab" onclick="switchTab('recommendations')">Recommendations</button>
+            <button class="tab" onclick="switchTab('stats')">Statistics</button>
+            <button class="tab" onclick="switchTab('settings')">Settings</button>
+        </div>
+
+        <div id="inventory" class="tab-content active">
+            <h2 style="margin-bottom: 20px; color: var(--text-primary);">Pants Inventory</h2>
+            
+            <form id="addPantsForm" class="form-section">
+                <h3 style="margin-bottom: 20px; color: var(--text-primary);">Add New Pants</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pantsBrand">Brand</label>
+                        <input type="text" id="pantsBrand" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pantsModel">Model/Name</label>
+                        <input type="text" id="pantsModel" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pantsColor">Color</label>
+                        <select id="pantsColor" required style="background: white;">
+                            <option value="">Select color...</option>
+                            <option value="Black" style="background: #000000; color: white;">⬛ Black</option>
+                            <option value="Dark Gray" style="background: #4a4a4a; color: white;">⬛ Dark Gray</option>
+                            <option value="Gray" style="background: #808080; color: white;">⬛ Gray</option>
+                            <option value="Light Gray" style="background: #d3d3d3; color: black;">⬜ Light Gray</option>
+                            <option value="Navy" style="background: #000080; color: white;">🟦 Navy</option>
+                            <option value="Blue" style="background: #0000ff; color: white;">🟦 Blue</option>
+                            <option value="Light Blue" style="background: #add8e6; color: black;">🟦 Light Blue</option>
+                            <option value="Dark Brown" style="background: #654321; color: white;">🟫 Dark Brown</option>
+                            <option value="Brown" style="background: #8b4513; color: white;">🟫 Brown</option>
+                            <option value="Tan" style="background: #d2b48c; color: black;">🟫 Tan</option>
+                            <option value="Khaki" style="background: #c3b091; color: black;">🟫 Khaki</option>
+                            <option value="Beige" style="background: #f5f5dc; color: black;">🟫 Beige</option>
+                            <option value="Olive" style="background: #556b2f; color: white;">🟢 Olive</option>
+                            <option value="Green" style="background: #008000; color: white;">🟢 Green</option>
+                            <option value="Dark Green" style="background: #006400; color: white;">🟢 Dark Green</option>
+                            <option value="Burgundy" style="background: #800020; color: white;">🟥 Burgundy</option>
+                            <option value="Red" style="background: #ff0000; color: white;">🟥 Red</option>
+                            <option value="Orange" style="background: #ff8c00; color: white;">🟧 Orange</option>
+                            <option value="White" style="background: #ffffff; color: black; border: 1px solid #ccc;">⬜ White</option>
+                            <option value="Ecru" style="background: #fffdd0; color: black;">⬜ Ecru</option>
+                            <option value="Purple" style="background: #800080; color: white;">🟪 Purple</option>
+                            <option value="Charcoal" style="background: #36454f; color: white;">⬛ Charcoal</option>
+                            <option value="Indigo" style="background: #4b0082; color: white;">🟦 Indigo</option>
+                            <option value="Other">🎨 Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pantsSize">Size</label>
+                        <input type="text" id="pantsSize" required placeholder="e.g., 32x30">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pantsStyle">Style</label>
+                        <select id="pantsStyle" required>
+                            <option value="">Select style...</option>
+                            <option value="Jeans">Jeans</option>
+                            <option value="Chinos">Chinos</option>
+                            <option value="Work Pants">Work Pants</option>
+                            <option value="Dress Pants">Dress Pants</option>
+                            <option value="Shorts">Shorts</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pantsFabricType">Fabric Type</label>
+                        <select id="pantsFabricType" required>
+                            <option value="">Select fabric type...</option>
+                            <option value="Denim">Denim</option>
+                            <option value="Twill">Twill</option>
+                            <option value="Canvas">Canvas</option>
+                            <option value="Corduroy">Corduroy</option>
+                            <option valie="Herringbone">Herringbone</option>
+                            <option value="Reverse Sateen">Reverse Sateen</option>
+                            <option value="Other">Other</option>
+
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pantsFabricWeight">Fabric Weight Category</label>
+                        <select id="pantsFabricWeight" required>
+                            <option value="">Select weight...</option>
+                            <option value="Lightweight">Lightweight (Summer)</option>
+                            <option value="Medium">Medium (Spring/Fall)</option>
+                            <option value="Heavyweight">Heavyweight (Winter)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pantsFabricWeightOz">Fabric Weight (oz/sq yd) - Optional</label>
+                        <input type="text" id="pantsFabricWeightOz" placeholder="e.g., 12">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="pantsNotes">Notes (optional)</label>
+                    <textarea id="pantsNotes" rows="2"></textarea>
+                </div>
+                <button type="submit">Add Pants</button>
+                <button type="button" class="btn-secondary" onclick="this.form.reset()" style="margin-left: 10px;">Clear</button>
+            </form>
+
+            <div class="filter-section">
+                <h3 style="margin-bottom: 15px; color: var(--text-primary);">Filter & Sort</h3>
+                <div class="form-row">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="filterColumn">Filter by Column</label>
+                        <select id="filterColumn" onchange="updateFilterInput()">
+                            <option value="">All Columns</option>
+                            <option value="brand">Brand</option>
+                            <option value="model">Model</option>
+                            <option value="color">Color</option>
+                            <option value="size">Size</option>
+                            <option value="style">Style</option>
+                            <option value="fabricType">Fabric Type</option>
+                            <option value="fabricWeight">Weight Category</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="filterValue">Filter Value</label>
+                        <input type="text" id="filterValue" placeholder="Type to filter..." oninput="applyFilters()">
+                    </div>
+                </div>
+                <div class="form-row" style="margin-top: 15px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="sortColumn">Sort by</label>
+                        <select id="sortColumn" onchange="applyFilters()">
+                            <option value="brand">Brand</option>
+                            <option value="model">Model</option>
+                            <option value="color">Color</option>
+                            <option value="wearCount">Wear Count</option>
+                            <option value="lastWorn">Last Worn</option>
+                            <option value="style">Style</option>
+                            <option value="fabricType">Fabric Type</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="sortOrder">Order</label>
+                        <select id="sortOrder" onchange="applyFilters()">
+                            <option value="asc">Ascending</option>
+                            <option value="desc">Descending</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="resetFilters()" class="btn-secondary" style="margin-top: 15px;">Reset Filters</button>
+            </div>
+            
+            <div id="inventoryTable"></div>
+        </div>
+
+        <div id="log" class="tab-content">
+            <h2 style="margin-bottom: 20px; color: var(--text-primary);">Daily Wear Log</h2>
+            
+            <form id="logWearForm" class="form-section">
+                <h3 style="margin-bottom: 20px; color: var(--text-primary);">Log Today's Wear</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="logDate">Date</label>
+                        <input type="date" id="logDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="logPants">Pants Worn</label>
+                        <select id="logPants" required>
+                            <option value="">Select pants...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="logTemp">Temperature (°F)</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" id="logTemp" placeholder="e.g., 72" style="flex: 1;">
+                        <button type="button" onclick="fetchWeatherForLog()" class="btn-secondary" style="white-space: nowrap;">🌡️ Fetch Weather</button>
+                    </div>
+                    <div id="logWeatherInfo" style="margin-top: 8px; font-size: 0.9em; color: #666;"></div>
+                </div>
+                <div class="form-group">
+                    <label for="logNotes">Notes (optional)</label>
+                    <textarea id="logNotes" rows="2" placeholder="How was the wear? Any observations?"></textarea>
+                </div>
+                <button type="submit">Log Wear</button>
+            </form>
+
+            <h3 style="margin-bottom: 15px; color: var(--text-primary);">Recent Wear History</h3>
+            <div id="wearHistory"></div>
+        </div>
+
+        <div id="recommendations" class="tab-content">
+            <h2 style="margin-bottom: 20px; color: var(--text-primary);">Smart Recommendations</h2>
+            
+            <div class="form-section">
+                <h3 style="margin-bottom: 15px; color: var(--text-primary);">Recommendation Preferences</h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="wearPreference">Wear Preference</label>
+                        <select id="wearPreference">
+                            <option value="balanced">Balanced (default)</option>
+                            <option value="least-worn">Prefer Least Worn</option>
+                            <option value="most-worn">Prefer Most Worn / Favorites</option>
+                            <option value="not-recent">Prefer Not Worn Recently</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="denimPreference">Denim Preference</label>
+                        <select id="denimPreference">
+                            <option value="any">Any Pants</option>
+                            <option value="denim-only">Denim/Jeans Only</option>
+                            <option value="no-denim">No Denim/Jeans</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fabricWeightPreference">Fabric Weight</label>
+                        <select id="fabricWeightPreference">
+                            <option value="any">Any Weight</option>
+                            <option value="Lightweight">Lightweight (Summer)</option>
+                            <option value="Medium">Medium (Spring/Fall)</option>
+                            <option value="Heavyweight">Heavyweight (Winter)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                    </div>
+                </div>
+                
+                <button onclick="getRecommendation()">Get Recommendation</button>
+            </div>
+
+            <div id="recommendationResult"></div>
+        </div>
+
+        <div id="stats" class="tab-content">
+            <h2 style="margin-bottom: 20px; color: var(--text-primary);">Wardrobe Statistics</h2>
+            <div id="statsContent"></div>
+        </div>
+
+        <div id="settings" class="tab-content">
+            <h2 style="margin-bottom: 20px; color: var(--text-primary);">Settings</h2>
+            
+            <div class="sync-settings">
+                <h3 style="margin-bottom: 15px; color: var(--text-primary);">☁️ Dropbox Sync</h3>
+                
+                <div id="syncNotConnected" style="display: none;">
+                    <p style="color: var(--text-secondary); margin-bottom: 15px;">
+                        Connect to Dropbox to securely sync your data across all devices.
+                    </p>
+                    
+                    <div style="background: var(--section-bg); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 2px solid #0061ff;">
+                        <h4 style="color: var(--text-primary); margin-bottom: 10px;">📝 One-Time Setup (5 minutes):</h4>
+                        <ol style="color: var(--text-secondary); margin-left: 20px; line-height: 1.8; font-size: 0.9em;">
+                            <li>Go to: <a href="https://www.dropbox.com/developers/apps/create" target="_blank" style="color: #0061ff;">dropbox.com/developers/apps/create</a></li>
+                            <li>Choose: <strong>Scoped access</strong> → <strong>App folder</strong></li>
+                            <li>Name your app (e.g., "Pants Tracker")</li>
+                            <li>Click <strong>Create app</strong></li>
+                            <li>In <strong>Permissions</strong> tab:
+                                <ul style="margin-left: 20px; margin-top: 5px;">
+                                    <li>Check: <strong>files.content.write</strong></li>
+                                    <li>Check: <strong>files.content.read</strong></li>
+                                    <li>Click <strong>Submit</strong> at bottom</li>
+                                </ul>
+                            </li>
+                            <li>Go to <strong>Settings</strong> tab</li>
+                            <li>Find <strong>App key</strong> (NOT App secret) - copy it</li>
+                            <li>In <strong>OAuth 2</strong> section → <strong>Redirect URIs</strong>:
+                                <ul style="margin-left: 20px; margin-top: 5px;">
+                                    <li>Click <strong>Add</strong></li>
+                                    <li>Enter: <code style="background: var(--input-bg); padding: 2px 6px; border-radius: 4px; font-size: 0.85em;"><span id="currentRedirectUri"></span></code></li>
+                                    <li>Click <strong>Add</strong> button</li>
+                                </ul>
+                            </li>
+                            <li><strong>Open this HTML file</strong> in a text editor</li>
+                            <li>Find line with: <code style="background: var(--input-bg); padding: 2px 6px; border-radius: 4px;">DROPBOX_APP_KEY = 'YOUR_APP_KEY_HERE'</code></li>
+                            <li>Replace with your app key: <code style="background: var(--input-bg); padding: 2px 6px; border-radius: 4px;">DROPBOX_APP_KEY = 'your-key-here'</code></li>
+                            <li><strong>Save the file</strong></li>
+                            <li><strong>Refresh this page</strong>, then click the button below ↓</li>
+                        </ol>
+                        
+                        <div style="margin-top: 20px; text-align: center;">
+                            <button onclick="startDropboxOAuth()" style="font-size: 1.1em; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                🔐 Connect to Dropbox
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <p style="color: var(--text-secondary); font-size: 0.9em; margin-top: 10px;">
+                        <strong>💡 How it works:</strong> You'll be redirected to Dropbox to authorize access. After approval, you'll be redirected back here and automatically connected. Your session never expires!
+                    </p>
+                </div>
+                
+                <div id="syncConnected" style="display: none;">
+                    <p style="color: #0061ff; margin-bottom: 10px; font-weight: 600;">
+                        ✓ Connected to Dropbox
+                    </p>
+                    <p style="color: var(--text-secondary); font-size: 0.9em; margin-bottom: 15px;">
+                        Last synced: <span id="lastSyncTime">Never</span>
+                    </p>
+                    
+                    <p style="color: var(--text-secondary); font-size: 0.85em; margin-bottom: 15px;">
+                        💡 Changes save automatically to Dropbox 2 seconds after editing.
+                    </p>
+                    
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button onclick="manualSync()" class="btn-secondary">🔄 Sync Now</button>
+                        <button onclick="handleDisconnect()" style="background: #dc3545; color: white;">Disconnect (Forget Token)</button>
+                    </div>
+                    
+                    <p style="color: var(--text-secondary); font-size: 0.85em; margin-top: 15px;">
+                        <strong>📁 Your data is saved to:</strong> <code style="background: var(--input-bg); padding: 2px 6px; border-radius: 4px;">/Apps/Pants Tracker/pants-tracker-data.json</code>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="sync-settings">
+                <h3 style="margin-bottom: 15px; color: var(--text-primary);">💾 Data Management</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 15px;">
+                    Export or import your data as a backup or to transfer between accounts.
+                </p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="exportData()" class="btn-secondary">📥 Export Data</button>
+                    <button onclick="document.getElementById('importFile').click()" class="btn-secondary">📤 Import Data</button>
+                    <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+                </div>
+            </div>
+            
+            <div class="sync-settings">
+                <h3 style="margin-bottom: 15px; color: var(--text-primary);">ℹ️ About</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 10px;">
+                    <strong>Version:</strong> 2.0 with Private Token Sync
+                </p>
+                <p style="color: var(--text-secondary); font-size: 0.9em;">
+                    Your data is stored locally in your browser and optionally synced to your Dropbox. 
+                    No data is sent to any other servers.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="washHistoryModal" class="modal" onclick="if(event.target === this) closeWashHistoryModal()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🧼 Wash History</h3>
+                <button class="modal-close" onclick="closeWashHistoryModal()">&times;</button>
+            </div>
+            <div id="washHistoryContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Theme management
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            const button = document.querySelector('.theme-toggle');
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            button.textContent = newTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+        }
+
+        // Load theme preference
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            const button = document.querySelector('.theme-toggle');
+            
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            button.textContent = savedTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+        }
+
+        // Data structure
+        let inventory = [];
+        let wearLog = [];
+
+        // Load data from localStorage on startup
+        function loadData() {
+            // Data loads from Dropbox only - see checkDropboxConnection()
+            // Keep arrays empty until Dropbox loads
+        }
+
+        // Debounce timer for saving
+        let saveTimeout = null;
+
+        // Save data to Dropbox (debounced)
+        async function saveData() {
+            // Don't save until initial load completes
+            if (!initialLoadComplete) {
+                console.log('Skipping save - waiting for initial load from Dropbox');
+                return;
+            }
+            
+            // Clear previous timeout
+            if (saveTimeout) clearTimeout(saveTimeout);
+            
+            // Debounce: wait 2 seconds of inactivity before saving
+            saveTimeout = setTimeout(async () => {
+                if (dropboxConnected && DROPBOX_ACCESS_TOKEN) {
+                    await syncToDropbox();
+                } else {
+                    console.warn('Not connected to Dropbox - changes not saved!');
+                }
+            }, 2000);
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+
+            // Refresh content when switching tabs
+            if (tabName === 'inventory') renderInventoryTable();
+            if (tabName === 'log') renderWearHistory();
+            if (tabName === 'stats') renderStatistics();
+            if (tabName === 'log') updateLogPantsDropdown();
+        }
+
+        // Add pants form submission
+        document.getElementById('addPantsForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const pants = {
+                id: Date.now(),
+                brand: document.getElementById('pantsBrand').value,
+                model: document.getElementById('pantsModel').value,
+                color: document.getElementById('pantsColor').value,
+                size: document.getElementById('pantsSize').value,
+                style: document.getElementById('pantsStyle').value,
+                fabricType: document.getElementById('pantsFabricType').value,
+                fabricWeight: document.getElementById('pantsFabricWeight').value,
+                fabricWeightOz: document.getElementById('pantsFabricWeightOz').value || null,
+                notes: document.getElementById('pantsNotes').value,
+                wearCount: 0,
+                lastWorn: null,
+                timesWashed: 0,
+                wearsSinceWash: 0,
+                washHistory: []
+            };
+
+            inventory.push(pants);
+            saveData();
+            this.reset();
+            renderInventoryTable();
+            alert('Pants added successfully!');
+        });
+
+        // Color mapping for display
+        const colorMap = {
+            'Black': '#000000',
+            'Dark Gray': '#4a4a4a',
+            'Gray': '#808080',
+            'Light Gray': '#d3d3d3',
+            'Navy': '#000080',
+            'Blue': '#0000ff',
+            'Light Blue': '#add8e6',
+            'Dark Brown': '#654321',
+            'Brown': '#8b4513',
+            'Tan': '#d2b48c',
+            'Khaki': '#c3b091',
+            'Beige': '#f5f5dc',
+            'Olive': '#556b2f',
+            'Green': '#008000',
+            'Dark Green': '#006400',
+            'Burgundy': '#800020',
+            'Red': '#ff0000',
+            'Orange': '#ff8c00',
+            'White': '#ffffff',
+            'Cream': '#fffdd0',
+            'Purple': '#800080',
+            'Charcoal': '#36454f',
+            'Indigo': '#4b0082'
+        };
+
+        // Render inventory table
+        function renderInventoryTable() {
+            const container = document.getElementById('inventoryTable');
+            
+            if (inventory.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p style="font-size: 1.2em;">No pants in inventory yet.</p>
+                        <p>Add your first pair above!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Apply filters and sorting
+            let filteredInventory = [...inventory];
+            
+            const filterColumn = document.getElementById('filterColumn')?.value;
+            const filterValue = document.getElementById('filterValue')?.value.toLowerCase();
+            
+            if (filterColumn && filterValue) {
+                filteredInventory = filteredInventory.filter(pants => {
+                    const value = pants[filterColumn]?.toString().toLowerCase() || '';
+                    return value.includes(filterValue);
+                });
+            } else if (filterValue && !filterColumn) {
+                // Search all columns
+                filteredInventory = filteredInventory.filter(pants => {
+                    return Object.values(pants).some(val => 
+                        val?.toString().toLowerCase().includes(filterValue)
+                    );
+                });
+            }
+
+            // Apply sorting
+            const sortColumn = document.getElementById('sortColumn')?.value || 'brand';
+            const sortOrder = document.getElementById('sortOrder')?.value || 'asc';
+            
+            filteredInventory.sort((a, b) => {
+                let aVal = a[sortColumn];
+                let bVal = b[sortColumn];
+                
+                // Handle null values
+                if (aVal === null || aVal === undefined) aVal = '';
+                if (bVal === null || bVal === undefined) bVal = '';
+                
+                // Handle numbers
+                if (sortColumn === 'wearCount') {
+                    aVal = parseInt(aVal) || 0;
+                    bVal = parseInt(bVal) || 0;
+                }
+                
+                // Handle dates
+                if (sortColumn === 'lastWorn') {
+                    aVal = aVal ? new Date(aVal) : new Date(0);
+                    bVal = bVal ? new Date(bVal) : new Date(0);
+                }
+                
+                if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+                if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            let html = `
+                <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Brand</th>
+                            <th>Model</th>
+                            <th>Color</th>
+                            <th>Size</th>
+                            <th>Style</th>
+                            <th>Fabric Type</th>
+                            <th>Weight</th>
+                            <th>Weight (oz)</th>
+                            <th>Total Wears</th>
+                            <th>Since Wash</th>
+                            <th>Times Washed</th>
+                            <th>Last Washed</th>
+                            <th>Last Worn</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            filteredInventory.forEach(pants => {
+                const colorHex = colorMap[pants.color] || '#cccccc';
+                const textColor = ['White', 'Cream', 'Light Gray', 'Beige', 'Tan', 'Khaki', 'Light Blue'].includes(pants.color) ? '#000' : '#fff';
+                
+                // Calculate wear count color based on relative position
+                const maxWears = Math.max(...inventory.map(p => p.wearCount), 1);
+                const minWears = Math.min(...inventory.map(p => p.wearCount), 0);
+                const wearRange = maxWears - minWears || 1;
+                const wearPosition = (pants.wearCount - minWears) / wearRange; // 0 to 1
+                
+                // Green (low wears) to Red (high wears) gradient
+                const red = Math.round(wearPosition * 255);
+                const green = Math.round((1 - wearPosition) * 180); // Cap green at 180 for better visibility
+                const wearColor = `rgb(${red}, ${green}, 0)`;
+                
+                // Initialize wash fields for older entries
+                if (pants.timesWashed === undefined) pants.timesWashed = 0;
+                if (pants.wearsSinceWash === undefined) pants.wearsSinceWash = pants.wearCount;
+                if (!pants.washHistory) pants.washHistory = [];
+                
+                // Get last washed date
+                const lastWashed = pants.washHistory.length > 0 
+                    ? new Date(pants.washHistory[pants.washHistory.length - 1] + 'T00:00:00').toLocaleDateString()
+                    : '-';
+                
+                html += `
+                    <tr>
+                        <td><strong>${pants.brand}</strong></td>
+                        <td>${pants.model}</td>
+                        <td>
+                            <span style="display: inline-block; background: ${colorHex}; color: ${textColor}; padding: 4px 12px; border-radius: 4px; font-size: 0.9em; border: 1px solid #ddd;">
+                                ${pants.color}
+                            </span>
+                        </td>
+                        <td>${pants.size}</td>
+                        <td>${pants.style}</td>
+                        <td>${pants.fabricType}</td>
+                        <td>${pants.fabricWeight}</td>
+                        <td>${pants.fabricWeightOz || '-'}</td>
+                        <td><strong style="color: ${wearColor}; font-size: 1.1em;">${pants.wearCount}</strong></td>
+                        <td><strong style="color: #667eea; font-size: 1.1em;">${pants.wearsSinceWash}</strong></td>
+                        <td>
+                            ${pants.timesWashed > 0 
+                                ? `<span style="cursor: pointer; color: #667eea; text-decoration: underline;" onclick="viewWashHistory(${pants.id})">${pants.timesWashed}</span>`
+                                : pants.timesWashed
+                            }
+                        </td>
+                        <td>${lastWashed}</td>
+                        <td>${pants.lastWorn ? new Date(pants.lastWorn + 'T00:00:00').toLocaleDateString() : '-'}</td>
+                        <td>
+                            <div class="action-buttons" style="flex-direction: column; gap: 4px;">
+                                <button class="btn-secondary" onclick="markAsWashed(${pants.id})" style="font-size: 0.85em; padding: 4px 8px;">🧼 Washed</button>
+                                <div style="display: flex; gap: 4px;">
+                                    <button class="btn-secondary" onclick="editPants(${pants.id})" style="font-size: 0.85em; padding: 4px 8px;">Edit</button>
+                                    <button class="btn-danger" onclick="deletePants(${pants.id})" style="font-size: 0.85em; padding: 4px 8px;">Delete</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table></div>';
+            
+            if (filteredInventory.length === 0 && inventory.length > 0) {
+                html = `
+                    <div class="empty-state">
+                        <p style="font-size: 1.2em;">No pants match your filters.</p>
+                        <p>Try adjusting your search criteria.</p>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        // Filter and sort functions
+        function updateFilterInput() {
+            const filterColumn = document.getElementById('filterColumn').value;
+            const filterValue = document.getElementById('filterValue');
+            
+            if (filterColumn) {
+                filterValue.placeholder = `Filter by ${filterColumn}...`;
+            } else {
+                filterValue.placeholder = 'Type to filter all columns...';
+            }
+            
+            applyFilters();
+        }
+
+        function applyFilters() {
+            renderInventoryTable();
+        }
+
+        function resetFilters() {
+            document.getElementById('filterColumn').value = '';
+            document.getElementById('filterValue').value = '';
+            document.getElementById('sortColumn').value = 'brand';
+            document.getElementById('sortOrder').value = 'asc';
+            renderInventoryTable();
+        }
+
+        // Mark pants as washed
+        function markAsWashed(id) {
+            const pants = inventory.find(p => p.id === id);
+            if (!pants) return;
+            
+            if (confirm(`Mark "${pants.brand} ${pants.model}" as washed?\n\nThis will:\n• Increment wash count\n• Reset wears since wash to 0\n• Record wash date`)) {
+                pants.timesWashed = (pants.timesWashed || 0) + 1;
+                pants.wearsSinceWash = 0;
+                
+                const washDate = new Date().toISOString().split('T')[0];
+                if (!pants.washHistory) pants.washHistory = [];
+                pants.washHistory.push(washDate);
+                
+                saveData();
+                renderInventoryTable();
+            }
+        }
+
+        // Delete pants
+        function deletePants(id) {
+            if (confirm('Are you sure you want to delete this item?')) {
+                inventory = inventory.filter(p => p.id !== id);
+                wearLog = wearLog.filter(log => log.pantsId !== id);
+                saveData();
+                renderInventoryTable();
+            }
+        }
+
+        // Edit pants (simplified - could be expanded)
+        function editPants(id) {
+            const pants = inventory.find(p => p.id === id);
+            if (!pants) return;
+            
+            // Simple edit - just prompt for new values
+            const newBrand = prompt('Brand:', pants.brand);
+            if (newBrand !== null) pants.brand = newBrand;
+            
+            const newModel = prompt('Model:', pants.model);
+            if (newModel !== null) pants.model = newModel;
+            
+            const newColor = prompt('Color:', pants.color);
+            if (newColor !== null) pants.color = newColor;
+            
+            const newSize = prompt('Size:', pants.size);
+            if (newSize !== null) pants.size = newSize;
+            
+            saveData();
+            renderInventoryTable();
+        }
+
+        // Fetch weather for daily log
+        async function fetchWeatherForLog() {
+            const logWeatherInfo = document.getElementById('logWeatherInfo');
+            
+            logWeatherInfo.innerHTML = '⏳ Getting your location...';
+            
+            if (!navigator.geolocation) {
+                logWeatherInfo.innerHTML = '❌ Geolocation not supported. Please enter temperature manually.';
+                document.getElementById('logTemp').focus();
+                return;
+            }
+            
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        timeout: 10000,
+                        enableHighAccuracy: false,
+                        maximumAge: 300000 // Accept cached position up to 5 minutes old
+                    });
+                });
+                
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                
+                logWeatherInfo.innerHTML = '⏳ Fetching weather data...';
+                
+                const weatherResponse = await fetch(
+                    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m&temperature_unit=fahrenheit&forecast_days=1`
+                );
+                
+                if (!weatherResponse.ok) {
+                    throw new Error('Weather API request failed');
+                }
+                
+                const weatherData = await weatherResponse.json();
+                const temp = weatherData.current.temperature_2m;
+                
+                document.getElementById('logTemp').value = Math.round(temp);
+                logWeatherInfo.innerHTML = `✅ Temperature set to ${Math.round(temp)}°F`;
+                
+            } catch (error) {
+                let errorMessage = '';
+                
+                if (error.code === 1) {
+                    errorMessage = '❌ Location denied. Enable in browser settings or enter manually.';
+                } else if (error.code === 2) {
+                    errorMessage = '❌ Location unavailable. Check device settings or enter manually.';
+                } else if (error.code === 3) {
+                    errorMessage = '❌ Request timed out. Try again or enter manually.';
+                } else if (error.message) {
+                    errorMessage = `❌ Error: ${error.message}`;
+                } else {
+                    errorMessage = '❌ Could not get location. Enter manually.';
+                }
+                
+                logWeatherInfo.innerHTML = errorMessage;
+                
+                // Focus on manual input
+                const tempInput = document.getElementById('logTemp');
+                if (tempInput) {
+                    tempInput.focus();
+                }
+                
+                console.error('Weather fetch error:', error);
+            }
+        }
+
+        // Set today's date as default
+        document.getElementById('logDate').valueAsDate = new Date();
+
+        // Update pants dropdown in log form
+        function updateLogPantsDropdown() {
+            const select = document.getElementById('logPants');
+            select.innerHTML = '<option value="">Select pants...</option>';
+            
+            inventory.forEach(pants => {
+                const option = document.createElement('option');
+                option.value = pants.id;
+                option.textContent = `${pants.brand} ${pants.model} - ${pants.color}`;
+                select.appendChild(option);
+            });
+        }
+
+        // Log wear form submission
+        document.getElementById('logWearForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const log = {
+                id: Date.now(),
+                date: document.getElementById('logDate').value,
+                pantsId: parseInt(document.getElementById('logPants').value),
+                temperature: document.getElementById('logTemp').value || null,
+                notes: document.getElementById('logNotes').value
+            };
+
+            wearLog.push(log);
+            
+            // Update wear count, wears since wash, and last worn date
+            const pants = inventory.find(p => p.id === log.pantsId);
+            if (pants) {
+                pants.wearCount++;
+                pants.lastWorn = log.date;
+                
+                // Initialize wash fields if they don't exist (for older data)
+                if (pants.wearsSinceWash === undefined) pants.wearsSinceWash = 0;
+                if (pants.timesWashed === undefined) pants.timesWashed = 0;
+                
+                pants.wearsSinceWash++;
+            }
+
+            saveData();
+            this.reset();
+            document.getElementById('logDate').valueAsDate = new Date();
+            document.getElementById('logWeatherInfo').innerHTML = '';
+            renderWearHistory();
+            renderInventoryTable(); // Update inventory to show new wear count
+            alert('Wear logged successfully!');
+        });
+
+        // Render wear history
+        function renderWearHistory() {
+            const container = document.getElementById('wearHistory');
+            
+            if (wearLog.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>No wear history yet. Log your first wear above!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort by date descending
+            const sortedLog = [...wearLog].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            let html = '';
+            sortedLog.forEach(log => {
+                const pants = inventory.find(p => p.id === log.pantsId);
+                if (!pants) return;
+                
+                html += `
+                    <div class="wear-log-entry">
+                        <div>
+                            <div class="date">${new Date(log.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                            <div><strong>${pants.brand} ${pants.model}</strong> - ${pants.color} (${pants.style})</div>
+                            ${log.temperature ? `<div style="color: var(--text-secondary); font-size: 0.9em;">Temperature: ${log.temperature}°F</div>` : ''}
+                            ${log.notes ? `<div style="color: var(--text-secondary); font-size: 0.9em; margin-top: 5px;">${log.notes}</div>` : ''}
+                        </div>
+                        <button class="btn-danger" onclick="deleteLog(${log.id})">Delete</button>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Delete log entry
+        function deleteLog(id) {
+            if (confirm('Delete this log entry?')) {
+                const log = wearLog.find(l => l.id === id);
+                if (log) {
+                    const pants = inventory.find(p => p.id === log.pantsId);
+                    if (pants) {
+                        if (pants.wearCount > 0) {
+                            pants.wearCount--;
+                        }
+                        if (pants.wearsSinceWash > 0) {
+                            pants.wearsSinceWash--;
+                        }
+                    }
+                }
+                
+                wearLog = wearLog.filter(l => l.id !== id);
+                saveData();
+                renderWearHistory();
+                renderInventoryTable(); // Update inventory to show decreased wear count
+            }
+        }
+
+        // Get recommendation
+        function getRecommendation() {
+            const container = document.getElementById('recommendationResult');
+            generateRecommendation(container);
+        }
+
+        // Generate recommendation based on fabric weight
+        function generateRecommendation(container) {
+            if (inventory.length === 0) {
+                container.innerHTML = `
+                    <div class="recommendation-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <h3>📭 No Pants Available</h3>
+                        <p>Add some pants to your inventory first!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Get user preferences
+            const wearPreference = document.getElementById('wearPreference').value;
+            const denimPreference = document.getElementById('denimPreference').value;
+            const fabricWeightPref = document.getElementById('fabricWeightPreference').value;
+
+            // Start with all inventory
+            let candidates = [...inventory];
+            
+            // Filter by fabric weight if specified
+            if (fabricWeightPref !== 'any') {
+                candidates = candidates.filter(pants => pants.fabricWeight === fabricWeightPref);
+            }
+
+            // Filter by denim preference
+            if (denimPreference === 'denim-only') {
+                candidates = candidates.filter(pants => 
+                    pants.style === 'Jeans' || 
+                    pants.fabricType === 'Denim' ||
+                    pants.color === 'Indigo'
+                );
+            } else if (denimPreference === 'no-denim') {
+                candidates = candidates.filter(pants => 
+                    pants.style !== 'Jeans' && 
+                    pants.fabricType !== 'Denim' &&
+                    pants.color !== 'Indigo'
+                );
+            }
+
+            if (candidates.length === 0) {
+                let message = 'No pants match your selected filters';
+                if (fabricWeightPref !== 'any') {
+                    message += ` (${fabricWeightPref} fabric weight)`;
+                }
+                if (denimPreference === 'denim-only') {
+                    message += ' and denim/jeans filter';
+                } else if (denimPreference === 'no-denim') {
+                    message += ' and non-denim filter';
+                }
+                message += '.';
+                
+                container.innerHTML = `
+                    <div class="recommendation-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                        <h3>🔍 No Match Found</h3>
+                        <p>${message}</p>
+                        <p>Try adjusting your preferences.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Score each candidate based on preferences
+            const scored = candidates.map(pants => {
+                let score = 0;
+                
+                const maxWears = Math.max(...inventory.map(p => p.wearCount), 1);
+                const minWears = Math.min(...inventory.map(p => p.wearCount), 0);
+                
+                // Apply wear preference scoring
+                if (wearPreference === 'least-worn') {
+                    // Strongly prefer least worn
+                    score += (maxWears - pants.wearCount) * 20;
+                } else if (wearPreference === 'most-worn') {
+                    // Prefer most worn (favorites)
+                    score += pants.wearCount * 20;
+                } else if (wearPreference === 'not-recent') {
+                    // Strongly prefer not worn recently
+                    if (pants.lastWorn) {
+                        const daysSince = (Date.now() - new Date(pants.lastWorn)) / (1000 * 60 * 60 * 24);
+                        score += Math.min(daysSince * 5, 100); // Up to 100 points for 20+ days
+                    } else {
+                        score += 100; // Never worn gets max points
+                    }
+                } else {
+                    // Balanced (default) - moderate preference for less worn
+                    score += (maxWears - pants.wearCount) * 10;
+                    
+                    // Balanced - moderate preference for not worn recently
+                    if (pants.lastWorn) {
+                        const daysSince = (Date.now() - new Date(pants.lastWorn)) / (1000 * 60 * 60 * 24);
+                        score += Math.min(daysSince * 2, 30);
+                    } else {
+                        score += 30;
+                    }
+                }
+                
+                return { pants, score };
+            });
+
+            // Sort by score and get top recommendation
+            scored.sort((a, b) => b.score - a.score);
+            const recommended = scored[0].pants;
+
+            // Get alternatives
+            const alternatives = scored.slice(1, 4);
+            
+            // Create preference description
+            let prefDescription = '';
+            if (fabricWeightPref !== 'any') {
+                prefDescription = ` ${fabricWeightPref}`;
+            }
+            if (wearPreference === 'least-worn') {
+                prefDescription += ' (prioritizing least worn)';
+            } else if (wearPreference === 'most-worn') {
+                prefDescription += ' (prioritizing favorites)';
+            } else if (wearPreference === 'not-recent') {
+                prefDescription += ' (prioritizing not worn recently)';
+            }
+            
+            if (denimPreference === 'denim-only') {
+                prefDescription += ' - Denim/Jeans only';
+            } else if (denimPreference === 'no-denim') {
+                prefDescription += ' - Non-denim only';
+            }
+
+            container.innerHTML = `
+                <div class="recommendation-card">
+                    <h3>✨ Recommended${prefDescription}</h3>
+                    <p style="font-size: 1.5em; margin: 15px 0;"><strong>${recommended.brand} ${recommended.model}</strong></p>
+                    <p>Color: ${recommended.color} | Style: ${recommended.style}</p>
+                    <p>Fabric: ${recommended.fabricType} | Weight: ${recommended.fabricWeight}${recommended.fabricWeightOz ? ' (' + recommended.fabricWeightOz + ' oz)' : ''}</p>
+                    <p>Worn ${recommended.wearCount} time${recommended.wearCount !== 1 ? 's' : ''}</p>
+                    ${recommended.lastWorn ? `<p>Last worn: ${new Date(recommended.lastWorn + 'T00:00:00').toLocaleDateString()} (${Math.floor((Date.now() - new Date(recommended.lastWorn)) / (1000 * 60 * 60 * 24))} days ago)</p>` : '<p>Never worn yet!</p>'}
+                </div>
+                
+                ${alternatives.length > 0 ? `
+                    <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-primary);">Alternative Options</h3>
+                    ${alternatives.map(alt => `
+                        <div style="background: var(--section-bg); padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                            <strong>${alt.pants.brand} ${alt.pants.model}</strong> - ${alt.pants.color} (${alt.pants.style})
+                            <div style="color: var(--text-secondary); font-size: 0.9em; margin-top: 5px;">
+                                Worn ${alt.pants.wearCount} times | ${alt.pants.fabricType} | ${alt.pants.fabricWeight}
+                                ${alt.pants.lastWorn ? ` | Last worn ${Math.floor((Date.now() - new Date(alt.pants.lastWorn)) / (1000 * 60 * 60 * 24))} days ago` : ' | Never worn'}
+                            </div>
+                        </div>
+                    `).join('')}
+                ` : ''}
+            `;
+        }
+
+        // Render statistics
+        function renderStatistics() {
+            const container = document.getElementById('statsContent');
+            
+            if (inventory.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>Add some pants to see statistics!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const totalPants = inventory.length;
+            const totalWears = inventory.reduce((sum, p) => sum + p.wearCount, 0);
+            const avgWears = totalWears / totalPants;
+            const totalWashes = inventory.reduce((sum, p) => sum + (p.timesWashed || 0), 0);
+            const avgWashes = totalWashes / totalPants;
+            
+            // Find pants that need washing (more than 5 wears since wash)
+            const needsWashing = inventory.filter(p => (p.wearsSinceWash || 0) > 5);
+            
+            const mostWorn = [...inventory].sort((a, b) => b.wearCount - a.wearCount)[0];
+            const leastWorn = [...inventory].sort((a, b) => a.wearCount - b.wearCount)[0];
+            const mostWashed = [...inventory].sort((a, b) => (b.timesWashed || 0) - (a.timesWashed || 0))[0];
+            const needsWashMost = [...inventory].sort((a, b) => (b.wearsSinceWash || 0) - (a.wearsSinceWash || 0))[0];
+
+            // Style breakdown
+            const styleCount = {};
+            inventory.forEach(p => {
+                styleCount[p.style] = (styleCount[p.style] || 0) + 1;
+            });
+
+            // Weight breakdown
+            const weightCount = {};
+            inventory.forEach(p => {
+                weightCount[p.fabricWeight] = (weightCount[p.fabricWeight] || 0) + 1;
+            });
+
+            container.innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Total Pants</h4>
+                        <div class="stat-value">${totalPants}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Total Wears</h4>
+                        <div class="stat-value">${totalWears}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Average Wears</h4>
+                        <div class="stat-value">${avgWears.toFixed(1)}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Log Entries</h4>
+                        <div class="stat-value">${wearLog.length}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Total Washes</h4>
+                        <div class="stat-value">${totalWashes}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Average Washes</h4>
+                        <div class="stat-value">${avgWashes.toFixed(1)}</div>
+                    </div>
+                </div>
+
+                ${needsWashing.length > 0 ? `
+                    <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-primary);">🧼 May Need Washing (5+ wears since wash)</h3>
+                    <div style="background: var(--section-bg); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 2px solid var(--border-color);">
+                        ${needsWashing.map(p => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border-color);">
+                                <div>
+                                    <strong>${p.brand} ${p.model}</strong> - ${p.color}
+                                    <div style="font-size: 0.9em; color: var(--text-secondary); margin-top: 4px;">
+                                        ${p.wearsSinceWash} wears since last wash
+                                    </div>
+                                </div>
+                                <button class="btn-secondary" onclick="markAsWashed(${p.id})" style="font-size: 0.85em;">🧼 Mark as Washed</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-primary);">Most & Least Worn</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div style="background: #e8f5e9; padding: 20px; border-radius: 12px;">
+                        <h4 style="color: #2e7d32; margin-bottom: 10px;">🏆 Most Worn</h4>
+                        <p style="color: var(--text-primary);"><strong>${mostWorn.brand} ${mostWorn.model}</strong></p>
+                        <p style="color: var(--text-primary);">${mostWorn.color} - ${mostWorn.style}</p>
+                        <p style="font-size: 1.5em; margin-top: 10px; color: var(--text-primary);"><strong>${mostWorn.wearCount}</strong> wears</p>
+                    </div>
+                    <div style="background: #fff3e0; padding: 20px; border-radius: 12px;">
+                        <h4 style="color: #e65100; margin-bottom: 10px;">😴 Least Worn</h4>
+                        <p style="color: var(--text-primary);"><strong>${leastWorn.brand} ${leastWorn.model}</strong></p>
+                        <p style="color: var(--text-primary);">${leastWorn.color} - ${leastWorn.style}</p>
+                        <p style="font-size: 1.5em; margin-top: 10px; color: var(--text-primary);"><strong>${leastWorn.wearCount}</strong> wears</p>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-primary);">Wash Statistics</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div style="background: #e3f2fd; padding: 20px; border-radius: 12px;">
+                        <h4 style="color: #1565c0; margin-bottom: 10px;">🧼 Most Washed</h4>
+                        <p style="color: var(--text-primary);"><strong>${mostWashed.brand} ${mostWashed.model}</strong></p>
+                        <p style="color: var(--text-primary);">${mostWashed.color} - ${mostWashed.style}</p>
+                        <p style="font-size: 1.5em; margin-top: 10px; color: var(--text-primary);"><strong>${mostWashed.timesWashed || 0}</strong> washes</p>
+                    </div>
+                    <div style="background: #fce4ec; padding: 20px; border-radius: 12px;">
+                        <h4 style="color: #c2185b; margin-bottom: 10px;">🚨 Needs Wash Most</h4>
+                        <p style="color: var(--text-primary);"><strong>${needsWashMost.brand} ${needsWashMost.model}</strong></p>
+                        <p style="color: var(--text-primary);">${needsWashMost.color} - ${needsWashMost.style}</p>
+                        <p style="font-size: 1.5em; margin-top: 10px; color: var(--text-primary);"><strong>${needsWashMost.wearsSinceWash || 0}</strong> wears since wash</p>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-primary);">Style Breakdown</h3>
+                <div style="background: var(--section-bg); padding: 20px; border-radius: 12px;">
+                    ${Object.entries(styleCount).map(([style, count]) => `
+                        <div style="margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span style="color: var(--text-primary);"><strong>${style}</strong></span>
+                                <span style="color: var(--text-primary);">${count} pair${count !== 1 ? 's' : ''}</span>
+                            </div>
+                            <div style="background: var(--border-color); height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100%; width: ${(count / totalPants) * 100}%;"></div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-primary);">Fabric Weight Distribution</h3>
+                <div style="background: var(--section-bg); padding: 20px; border-radius: 12px;">
+                    ${Object.entries(weightCount).map(([weight, count]) => `
+                        <div style="margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span style="color: var(--text-primary);"><strong>${weight}</strong></span>
+                                <span style="color: var(--text-primary);">${count} pair${count !== 1 ? 's' : ''}</span>
+                            </div>
+                            <div style="background: var(--border-color); height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); height: 100%; width: ${(count / totalPants) * 100}%;"></div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // View wash history modal
+        function viewWashHistory(id) {
+            const pants = inventory.find(p => p.id === id);
+            if (!pants) return;
+            
+            const modal = document.getElementById('washHistoryModal');
+            const content = document.getElementById('washHistoryContent');
+            
+            if (!pants.washHistory || pants.washHistory.length === 0) {
+                content.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+                        <p style="font-size: 1.2em; margin-bottom: 10px;">🧼</p>
+                        <p>No wash history recorded yet.</p>
+                        <p style="font-size: 0.9em; margin-top: 10px;">Mark this item as washed to start tracking.</p>
+                    </div>
+                `;
+            } else {
+                // Sort wash history by date descending (most recent first)
+                const sortedHistory = [...pants.washHistory].sort((a, b) => new Date(b) - new Date(a));
+                
+                let html = `
+                    <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border-color);">
+                        <p style="color: var(--text-primary);"><strong>${pants.brand} ${pants.model}</strong></p>
+                        <p style="color: var(--text-secondary); font-size: 0.9em;">${pants.color} - ${pants.style}</p>
+                        <p style="color: #667eea; font-size: 0.9em; margin-top: 8px;">Total washes: ${sortedHistory.length}</p>
+                    </div>
+                    <ul class="wash-history-list">
+                `;
+                
+                sortedHistory.forEach((washDate, index) => {
+                    const date = new Date(washDate + 'T00:00:00');
+                    const daysAgo = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
+                    const agoText = daysAgo === 0 ? 'Today' : daysAgo === 1 ? '1 day ago' : `${daysAgo} days ago`;
+                    
+                    html += `
+                        <li class="wash-history-item">
+                            <div>
+                                <div class="date">${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                                <div class="ago">${agoText}</div>
+                            </div>
+                            <button class="delete-wash" onclick="deleteWash(${pants.id}, '${washDate}')">🗑️ Remove</button>
+                        </li>
+                    `;
+                });
+                
+                html += '</ul>';
+                content.innerHTML = html;
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeWashHistoryModal() {
+            const modal = document.getElementById('washHistoryModal');
+            modal.classList.remove('active');
+        }
+
+        // Delete a specific wash entry
+        function deleteWash(pantsId, washDate) {
+            const pants = inventory.find(p => p.id === pantsId);
+            if (!pants) return;
+            
+            if (confirm(`Remove wash from ${new Date(washDate + 'T00:00:00').toLocaleDateString()}?`)) {
+                // Remove the wash date from history
+                pants.washHistory = pants.washHistory.filter(d => d !== washDate);
+                
+                // Decrement wash count
+                pants.timesWashed = Math.max(0, pants.timesWashed - 1);
+                
+                // Recalculate wearsSinceWash
+                if (pants.washHistory.length === 0) {
+                    // No washes left, count all wears
+                    pants.wearsSinceWash = pants.wearCount;
+                } else {
+                    // Find the most recent wash date
+                    const sortedWashes = [...pants.washHistory].sort((a, b) => new Date(b) - new Date(a));
+                    const lastWashDate = new Date(sortedWashes[0]);
+                    
+                    // Count wears after the last wash
+                    const wearsAfterWash = wearLog.filter(log => 
+                        log.pantsId === pantsId && new Date(log.date) > lastWashDate
+                    ).length;
+                    
+                    pants.wearsSinceWash = wearsAfterWash;
+                }
+                
+                saveData();
+                renderInventoryTable();
+                
+                // Refresh the modal if it's still open
+                viewWashHistory(pantsId);
+            }
+        }
+
+        // ========================================
+        // DROPBOX SYNC FUNCTIONALITY (Private Key Model)
+        // ========================================
+        
+        // IMPORTANT: Dropbox Access Token is now loaded from local storage for security.
+        // Do NOT hardcode your token here before pushing to a public repository like GitHub Pages.
+        // ========================================
+        // DROPBOX OAUTH2 CONFIGURATION
+        // ========================================
+        
+        // IMPORTANT: Replace with your Dropbox App Key (NOT the secret!)
+        // Get it from: https://www.dropbox.com/developers/apps
+        const DROPBOX_APP_KEY = 'f9o50r875mknj36';
+        
+        // Redirect URI - must match what's configured in Dropbox App Console
+        // For local testing: http://localhost:8000/pants-tracker.html
+        // For GitHub Pages: https://yourusername.github.io/repo/pants-tracker.html
+        const REDIRECT_URI = window.location.origin + window.location.pathname;
+        
+        const DROPBOX_FILE_PATH = '/pants-tracker-data.json';
+        
+        let DROPBOX_ACCESS_TOKEN = localStorage.getItem('dropbox_access_token');
+        let DROPBOX_REFRESH_TOKEN = localStorage.getItem('dropbox_refresh_token');
+        let TOKEN_EXPIRES_AT = parseInt(localStorage.getItem('dropbox_token_expires_at') || '0');
+        
+        let dropboxConnected = false;
+        let isSyncing = false;
+        let lastSyncTime = null;
+        let initialLoadComplete = false; // Prevent saving before first load
+        
+        // ========================================
+        // OAUTH2 WITH PKCE IMPLEMENTATION
+        // ========================================
+        
+        // Generate random string for PKCE code verifier
+        function generateCodeVerifier() {
+            const array = new Uint8Array(32);
+            crypto.getRandomValues(array);
+            return base64UrlEncode(array);
+        }
+        
+        // Generate code challenge from verifier
+        async function generateCodeChallenge(verifier) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(verifier);
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            return base64UrlEncode(new Uint8Array(hash));
+        }
+        
+        // Base64 URL encoding
+        function base64UrlEncode(array) {
+            const base64 = btoa(String.fromCharCode(...array));
+            return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        }
+        
+        // Start OAuth2 flow
+        async function startDropboxOAuth() {
+            if (!DROPBOX_APP_KEY || DROPBOX_APP_KEY === 'YOUR_APP_KEY_HERE') {
+                alert('Please set your DROPBOX_APP_KEY in the HTML file first!\n\nGet it from: https://www.dropbox.com/developers/apps');
+                return;
+            }
+            
+            // Generate PKCE parameters
+            const codeVerifier = generateCodeVerifier();
+            const codeChallenge = await generateCodeChallenge(codeVerifier);
+            
+            // Store verifier for later
+            sessionStorage.setItem('pkce_code_verifier', codeVerifier);
+            
+            // Build authorization URL
+            const authUrl = new URL('https://www.dropbox.com/oauth2/authorize');
+            authUrl.searchParams.set('client_id', DROPBOX_APP_KEY);
+            authUrl.searchParams.set('response_type', 'code');
+            authUrl.searchParams.set('redirect_uri', REDIRECT_URI);
+            authUrl.searchParams.set('code_challenge', codeChallenge);
+            authUrl.searchParams.set('code_challenge_method', 'S256');
+            authUrl.searchParams.set('token_access_type', 'offline'); // Request refresh token
+            
+            // Redirect to Dropbox authorization
+            window.location.href = authUrl.toString();
+        }
+        
+        // Handle OAuth2 callback
+        async function handleOAuthCallback() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            
+            if (!code) return; // Not an OAuth callback
+            
+            const codeVerifier = sessionStorage.getItem('pkce_code_verifier');
+            if (!codeVerifier) {
+                console.error('No code verifier found');
+                return;
+            }
+            
+            try {
+                // Exchange code for tokens
+                const response = await fetch('https://api.dropboxapi.com/oauth2/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        code: code,
+                        grant_type: 'authorization_code',
+                        code_verifier: codeVerifier,
+                        client_id: DROPBOX_APP_KEY,
+                        redirect_uri: REDIRECT_URI
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Token exchange failed');
+                }
+                
+                const data = await response.json();
+                
+                // Store tokens
+                DROPBOX_ACCESS_TOKEN = data.access_token;
+                DROPBOX_REFRESH_TOKEN = data.refresh_token;
+                TOKEN_EXPIRES_AT = Date.now() + (data.expires_in * 1000);
+                
+                localStorage.setItem('dropbox_access_token', DROPBOX_ACCESS_TOKEN);
+                localStorage.setItem('dropbox_refresh_token', DROPBOX_REFRESH_TOKEN);
+                localStorage.setItem('dropbox_token_expires_at', TOKEN_EXPIRES_AT.toString());
+                
+                // Clean up
+                sessionStorage.removeItem('pkce_code_verifier');
+                
+                // Remove code from URL
+                const cleanUrl = window.location.origin + window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+                
+                // Connect
+                checkDropboxConnection();
+                
+            } catch (error) {
+                console.error('OAuth error:', error);
+                alert('Failed to connect to Dropbox. Please try again.');
+            }
+        }
+        
+        // Refresh access token using refresh token
+        async function refreshAccessToken() {
+            if (!DROPBOX_REFRESH_TOKEN) {
+                console.error('No refresh token available');
+                return false;
+            }
+            
+            try {
+                const response = await fetch('https://api.dropboxapi.com/oauth2/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        grant_type: 'refresh_token',
+                        refresh_token: DROPBOX_REFRESH_TOKEN,
+                        client_id: DROPBOX_APP_KEY
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Token refresh failed');
+                }
+                
+                const data = await response.json();
+                
+                // Update access token
+                DROPBOX_ACCESS_TOKEN = data.access_token;
+                TOKEN_EXPIRES_AT = Date.now() + (data.expires_in * 1000);
+                
+                localStorage.setItem('dropbox_access_token', DROPBOX_ACCESS_TOKEN);
+                localStorage.setItem('dropbox_token_expires_at', TOKEN_EXPIRES_AT.toString());
+                
+                console.log('Access token refreshed');
+                return true;
+                
+            } catch (error) {
+                console.error('Token refresh error:', error);
+                // Clear invalid tokens
+                localStorage.removeItem('dropbox_access_token');
+                localStorage.removeItem('dropbox_refresh_token');
+                localStorage.removeItem('dropbox_token_expires_at');
+                DROPBOX_ACCESS_TOKEN = null;
+                DROPBOX_REFRESH_TOKEN = null;
+                dropboxConnected = false;
+                return false;
+            }
+        }
+        
+        // Check if token needs refresh and refresh if needed
+        async function ensureValidToken() {
+            // Check if token is expired or about to expire (within 5 minutes)
+            if (TOKEN_EXPIRES_AT && Date.now() >= TOKEN_EXPIRES_AT - 300000) {
+                console.log('Token expired or expiring soon, refreshing...');
+                return await refreshAccessToken();
+            }
+            return true;
+        }
+        
+        // Check if Dropbox is connected
+        async function checkDropboxConnection() {
+            const notConnected = document.getElementById('syncNotConnected');
+            const connectedSection = document.getElementById('syncConnected');
+            
+            // Check if we have tokens
+            if (DROPBOX_ACCESS_TOKEN && DROPBOX_REFRESH_TOKEN) {
+                // Ensure token is valid
+                const tokenValid = await ensureValidToken();
+                
+                if (tokenValid) {
+                    dropboxConnected = true;
+                    if (notConnected) notConnected.style.display = 'none';
+                    if (connectedSection) connectedSection.style.display = 'block';
+                    updateSyncUI(true);
+                    updateSyncStatus('syncing', 'Connecting...');
+                    
+                    // Try to load from Dropbox
+                    loadFromDropbox();
+                } else {
+                    // Token refresh failed
+                    dropboxConnected = false;
+                    if (notConnected) notConnected.style.display = 'block';
+                    if (connectedSection) connectedSection.style.display = 'none';
+                    updateSyncStatus('offline', 'Not Connected');
+                }
+            } else {
+                // No tokens
+                dropboxConnected = false;
+                if (notConnected) notConnected.style.display = 'block';
+                if (connectedSection) connectedSection.style.display = 'none';
+                updateSyncStatus('offline', 'Not Connected');
+            }
+        }
+        
+        // Update Sync UI
+        function updateSyncUI(connected) {
+            const statusElement = document.getElementById('syncStatus');
+            const syncButton = document.getElementById('syncButton');
+            const disconnectButton = document.getElementById('disconnectButton');
+            
+            if (!statusElement || !syncButton || !disconnectButton) return;
+            
+            if (connected) {
+                syncButton.style.display = 'block';
+                disconnectButton.style.display = 'block';
+                updateSyncStatus('synced', 'Connected');
+            } else {
+                syncButton.style.display = 'none';
+                disconnectButton.style.display = 'none';
+                updateSyncStatus('offline', 'Local Only');
+            }
+        }
+        
+        // Update Sync Status Indicator
+        function updateSyncStatus(status, text) {
+            const statusElement = document.getElementById('syncStatus');
+            const iconElement = document.getElementById('syncStatusIcon');
+            const textElement = document.getElementById('syncStatusText');
+            
+            if (!statusElement || !iconElement || !textElement) return;
+            
+            statusElement.className = `sync-status ${status}`;
+            
+            const icons = {
+                'synced': '✓',
+                'syncing': '↻',
+                'error': '✕',
+                'offline': '☁️'
+            };
+            
+            iconElement.textContent = icons[status] || '☁️';
+            textElement.textContent = text;
+            
+            if (status === 'synced' && lastSyncTime) {
+                const timeStr = new Date(lastSyncTime).toLocaleTimeString();
+                const lastSyncElement = document.getElementById('lastSyncTime');
+                if (lastSyncElement) {
+                    lastSyncElement.textContent = timeStr;
+                }
+            }
+        }
+        
+        // Load Data from Dropbox
+        async function loadFromDropbox() {
+            if (!dropboxConnected || isSyncing || !DROPBOX_ACCESS_TOKEN) return;
+            
+            try {
+                isSyncing = true;
+                updateSyncStatus('syncing', 'Loading...');
+                
+                // Ensure token is valid before making request
+                await ensureValidToken();
+                
+                const response = await fetch('https://content.dropboxapi.com/2/files/download', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${DROPBOX_ACCESS_TOKEN}`,
+                        'Dropbox-API-Arg': JSON.stringify({ path: DROPBOX_FILE_PATH })
+                    }
+                });
+                
+                if (response.ok) {
+                    const dropboxData = await response.json();
+                    
+                    // Always use Dropbox data (no localStorage comparison)
+                    inventory = dropboxData.inventory || [];
+                    wearLog = dropboxData.wearLog || [];
+                    
+                    // Migrate old data if needed
+                    inventory.forEach(pants => {
+                        if (pants.timesWashed === undefined) pants.timesWashed = 0;
+                        if (pants.wearsSinceWash === undefined) pants.wearsSinceWash = pants.wearCount || 0;
+                        if (!pants.washHistory) pants.washHistory = [];
+                    });
+                    
+                    renderInventoryTable();
+                    renderWearHistory();
+                    updateLogPantsDropdown();
+                    
+                    initialLoadComplete = true; // Now safe to save changes
+                    console.log('Loaded data from Dropbox - ready for changes');
+                    
+                    lastSyncTime = Date.now();
+                    updateSyncStatus('synced', 'Synced');
+                } else if (response.status === 409) {
+                    // File doesn't exist yet - initialize empty and mark as loaded
+                    console.log('No existing file - starting fresh');
+                    inventory = [];
+                    wearLog = [];
+                    initialLoadComplete = true;
+                    updateSyncStatus('synced', 'Ready');
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Error loading from Dropbox:', error);
+                
+                // Handle 401 Unauthorized - token is invalid or expired
+                if (error.message && error.message.includes('401')) {
+                    console.log('Dropbox token is invalid, attempting refresh...');
+                    
+                    // Try to refresh token
+                    const refreshed = await refreshAccessToken();
+                    
+                    if (!refreshed) {
+                        // Clear invalid tokens
+                        localStorage.removeItem('dropbox_access_token');
+                        localStorage.removeItem('dropbox_refresh_token');
+                        localStorage.removeItem('dropbox_token_expires_at');
+                        DROPBOX_ACCESS_TOKEN = null;
+                        DROPBOX_REFRESH_TOKEN = null;
+                        dropboxConnected = false;
+                        
+                        // Show reconnect UI
+                        const notConnected = document.getElementById('syncNotConnected');
+                        const connectedSection = document.getElementById('syncConnected');
+                        if (notConnected) notConnected.style.display = 'block';
+                        if (connectedSection) connectedSection.style.display = 'none';
+                        updateSyncStatus('offline', 'Token Expired');
+                        
+                        alert('Dropbox session expired. Please reconnect.');
+                    }
+                } else if (error.message.includes('409')) {
+                    // File doesn't exist, sync local data
+                    await syncToDropbox();
+                } else {
+                    updateSyncStatus('error', 'Load Failed');
+                }
+            } finally {
+                isSyncing = false;
+            }
+        }
+        
+        // Sync Data to Dropbox
+        async function syncToDropbox() {
+            if (!dropboxConnected || isSyncing || !DROPBOX_ACCESS_TOKEN) return;
+            
+            try {
+                isSyncing = true;
+                updateSyncStatus('syncing', 'Syncing...');
+                
+                // Ensure token is valid before making request
+                await ensureValidToken();
+                
+                const timestamp = Date.now();
+                const dataToSync = {
+                    inventory: inventory,
+                    wearLog: wearLog,
+                    lastModified: timestamp,
+                    version: '2.0'
+                };
+                
+                const response = await fetch('https://content.dropboxapi.com/2/files/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${DROPBOX_ACCESS_TOKEN}`,
+                        'Dropbox-API-Arg': JSON.stringify({
+                            path: DROPBOX_FILE_PATH,
+                            mode: 'overwrite',
+                            autorename: false
+                        }),
+                        'Content-Type': 'application/octet-stream'
+                    },
+                    body: JSON.stringify(dataToSync, null, 2)
+                });
+                
+                if (response.ok) {
+                    lastSyncTime = Date.now();
+                    updateSyncStatus('synced', 'Synced');
+                    console.log('Synced to Dropbox');
+                } else {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+            } catch (error) {
+                console.error('Error syncing to Dropbox:', error);
+                
+                // Handle 401 Unauthorized
+                if (error.message && error.message.includes('401')) {
+                    console.log('Dropbox token is invalid, attempting refresh...');
+                    
+                    // Try to refresh token
+                    const refreshed = await refreshAccessToken();
+                    
+                    if (!refreshed) {
+                        // Clear invalid tokens
+                        localStorage.removeItem('dropbox_access_token');
+                        localStorage.removeItem('dropbox_refresh_token');
+                        localStorage.removeItem('dropbox_token_expires_at');
+                        DROPBOX_ACCESS_TOKEN = null;
+                        DROPBOX_REFRESH_TOKEN = null;
+                        dropboxConnected = false;
+                        
+                        // Show reconnect UI
+                        const notConnected = document.getElementById('syncNotConnected');
+                        const connectedSection = document.getElementById('syncConnected');
+                        if (notConnected) notConnected.style.display = 'block';
+                        if (connectedSection) connectedSection.style.display = 'none';
+                        updateSyncStatus('offline', 'Token Expired');
+                        
+                        alert('Dropbox session expired. Please reconnect.');
+                    }
+                } else {
+                    updateSyncStatus('error', 'Sync Failed');
+                }
+            } finally {
+                isSyncing = false;
+            }
+        }
+        
+        // Manual Sync
+        async function manualSync() {
+            if (!dropboxConnected || !DROPBOX_ACCESS_TOKEN) {
+                alert('Please enter your Dropbox Access Token in the Settings tab first.');
+                return;
+            }
+            
+            await syncToDropbox();
+        }
+        
+        // Handle Disconnect (Forget Token)
+        function handleDisconnect() {
+            if (confirm('Disconnect from Dropbox? You will need to reconnect to sync again.')) {
+                // Clear all OAuth tokens
+                localStorage.removeItem('dropbox_access_token');
+                localStorage.removeItem('dropbox_refresh_token');
+                localStorage.removeItem('dropbox_token_expires_at');
+                DROPBOX_ACCESS_TOKEN = null;
+                DROPBOX_REFRESH_TOKEN = null;
+                dropboxConnected = false;
+                
+                // Show setup section
+                const notConnected = document.getElementById('syncNotConnected');
+                const connectedSection = document.getElementById('syncConnected');
+                if (notConnected) notConnected.style.display = 'block';
+                if (connectedSection) connectedSection.style.display = 'none';
+                
+                updateSyncStatus('offline', 'Not Connected');
+            }
+        }
+        
+        // Auto Sync Functions
+        // Export Data
+        function exportData() {
+            const dataToExport = {
+                inventory: inventory,
+                wearLog: wearLog,
+                exportDate: new Date().toISOString(),
+                version: '2.0'
+            };
+            
+            const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `pants-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // Import Data
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    if (confirm('This will replace all current data. Are you sure?')) {
+                        inventory = importedData.inventory || [];
+                        wearLog = importedData.wearLog || [];
+                        saveData();
+                        renderInventoryTable();
+                        renderWearHistory();
+                        updateLogPantsDropdown();
+                        
+                        // Sync to Dropbox if connected
+                        if (dropboxConnected) {
+                            syncToDropbox();
+                        }
+                        
+                        alert('Data imported successfully!');
+                    }
+                } catch (error) {
+                    alert('Error importing data. Please check the file format.');
+                    console.error('Import error:', error);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Initialize app
+        loadTheme();
+        loadData();
+        renderInventoryTable();
+        renderWearHistory();
+        updateLogPantsDropdown();
+        
+        // Display current redirect URI in setup instructions
+        const redirectUriElement = document.getElementById('currentRedirectUri');
+        if (redirectUriElement) {
+            redirectUriElement.textContent = REDIRECT_URI;
+        }
+        
+        // Handle OAuth callback if present
+        handleOAuthCallback().then(() => {
+            // After handling callback, check connection
+            checkDropboxConnection();
+        });
+    </script>
+</body>
+</html>
