@@ -890,15 +890,9 @@
                         Last synced: <span id="lastSyncTime">Never</span>
                     </p>
                     
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                            <input type="checkbox" id="autoSyncEnabled" onchange="toggleAutoSync()" checked>
-                            <span style="color: var(--text-primary);">Enable automatic sync</span>
-                        </label>
-                        <p style="color: var(--text-secondary); font-size: 0.85em; margin-left: 28px; margin-top: 4px;">
-                            Automatically saves changes to Dropbox every 30 seconds
-                        </p>
-                    </div>
+                    <p style="color: var(--text-secondary); font-size: 0.85em; margin-bottom: 15px;">
+                        💡 Changes save automatically to Dropbox 2 seconds after editing.
+                    </p>
                     
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <button onclick="manualSync()" class="btn-secondary">🔄 Sync Now</button>
@@ -975,43 +969,26 @@
 
         // Load data from localStorage on startup
         function loadData() {
-            const savedInventory = localStorage.getItem('pantsInventory');
-            const savedLog = localStorage.getItem('pantsWearLog');
-            
-            if (savedInventory) {
-                inventory = JSON.parse(savedInventory);
-                
-                // Initialize wash tracking fields for older data
-                inventory.forEach(pants => {
-                    if (pants.timesWashed === undefined) pants.timesWashed = 0;
-                    if (pants.wearsSinceWash === undefined) pants.wearsSinceWash = pants.wearCount || 0;
-                    
-                    // Migrate from lastWashed to washHistory
-                    if (!pants.washHistory) {
-                        pants.washHistory = [];
-                        if (pants.lastWashed) {
-                            pants.washHistory.push(pants.lastWashed);
-                            delete pants.lastWashed;
-                        }
-                    }
-                });
-                
-                // Save updated data
-                saveData();
-            }
-            if (savedLog) {
-                wearLog = JSON.parse(savedLog);
-            }
+            // Data loads from Dropbox only - see checkDropboxConnection()
+            // Keep arrays empty until Dropbox loads
         }
 
-        // Save data to localStorage
-        function saveData() {
-            localStorage.setItem('pantsInventory', JSON.stringify(inventory));
-            localStorage.setItem('pantsWearLog', JSON.stringify(wearLog));
-            localStorage.setItem('lastModified', Date.now());
+        // Debounce timer for saving
+        let saveTimeout = null;
+
+        // Save data to Dropbox (debounced)
+        async function saveData() {
+            // Clear previous timeout
+            if (saveTimeout) clearTimeout(saveTimeout);
             
-            // Dropbox sync happens automatically every 30 seconds if enabled
-            // No need to trigger immediately to avoid excessive API calls
+            // Debounce: wait 2 seconds of inactivity before saving
+            saveTimeout = setTimeout(async () => {
+                if (dropboxConnected && DROPBOX_ACCESS_TOKEN) {
+                    await syncToDropbox();
+                } else {
+                    console.warn('Not connected to Dropbox - changes not saved!');
+                }
+            }, 2000);
         }
 
         // Tab switching
@@ -1912,8 +1889,6 @@
         const DROPBOX_FILE_PATH = '/pants-tracker-data.json';
         
         let dropboxConnected = false;
-        let autoSyncInterval = null;
-        let autoSyncEnabled = true;
         let isSyncing = false;
         let lastSyncTime = null;
         
@@ -1952,7 +1927,6 @@
                 
                 // Try to load from Dropbox (will handle errors gracefully)
                 loadFromDropbox();
-                startAutoSync();
             } else {
                 // No token or invalid format
                 dropboxConnected = false;
@@ -2029,30 +2003,27 @@
                 if (response.ok) {
                     const dropboxData = await response.json();
                     
-                    // Check if we need to merge data
-                    const localTimestamp = localStorage.getItem('lastModified') || 0;
-                    const dropboxTimestamp = dropboxData.lastModified || 0;
+                    // Always use Dropbox data (no localStorage comparison)
+                    inventory = dropboxData.inventory || [];
+                    wearLog = dropboxData.wearLog || [];
                     
-                    if (dropboxTimestamp > localTimestamp || !localTimestamp) {
-                        // Dropbox data is newer, use it
-                        inventory = dropboxData.inventory || [];
-                        wearLog = dropboxData.wearLog || [];
-                        localStorage.setItem('lastModified', dropboxTimestamp);
-                        saveData(); // Save to localStorage
-                        renderInventoryTable();
-                        renderWearHistory(); // Update wear log display
-                        updateLogPantsDropdown(); // Update dropdown
-                        console.log('Loaded data from Dropbox');
-                    } else if (localTimestamp > dropboxTimestamp) {
-                        // Local data is newer, sync it to Dropbox
-                        await syncToDropbox();
-                    }
+                    // Migrate old data if needed
+                    inventory.forEach(pants => {
+                        if (pants.timesWashed === undefined) pants.timesWashed = 0;
+                        if (pants.wearsSinceWash === undefined) pants.wearsSinceWash = pants.wearCount || 0;
+                        if (!pants.washHistory) pants.washHistory = [];
+                    });
+                    
+                    renderInventoryTable();
+                    renderWearHistory();
+                    updateLogPantsDropdown();
+                    console.log('Loaded data from Dropbox');
                     
                     lastSyncTime = Date.now();
                     updateSyncStatus('synced', 'Synced');
                 } else if (response.status === 409) {
-                    // File doesn't exist yet, create it
-                    console.log('File not found, will create on first sync');
+                    // File doesn't exist yet, create empty one
+                    console.log('File not found, creating new file');
                     await syncToDropbox();
                 } else {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -2118,7 +2089,6 @@
                 });
                 
                 if (response.ok) {
-                    localStorage.setItem('lastModified', timestamp);
                     lastSyncTime = Date.now();
                     updateSyncStatus('synced', 'Synced');
                     console.log('Synced to Dropbox');
@@ -2182,34 +2152,6 @@
         }
         
         // Auto Sync Functions
-        function startAutoSync() {
-            if (autoSyncEnabled && dropboxConnected && !autoSyncInterval) {
-                autoSyncInterval = setInterval(() => {
-                    syncToDropbox();
-                }, 30000); // Sync every 30 seconds
-                console.log('Auto-sync started');
-            }
-        }
-        
-        function stopAutoSync() {
-            if (autoSyncInterval) {
-                clearInterval(autoSyncInterval);
-                autoSyncInterval = null;
-                console.log('Auto-sync stopped');
-            }
-        }
-        
-        function toggleAutoSync() {
-            autoSyncEnabled = document.getElementById('autoSyncEnabled').checked;
-            localStorage.setItem('autoSyncEnabled', autoSyncEnabled);
-            
-            if (autoSyncEnabled) {
-                startAutoSync();
-            } else {
-                stopAutoSync();
-            }
-        }
-        
         // Export Data
         function exportData() {
             const dataToExport = {
@@ -2270,17 +2212,7 @@
         renderWearHistory();
         updateLogPantsDropdown();
         
-        // Load auto-sync preference
-        const savedAutoSync = localStorage.getItem('autoSyncEnabled');
-        if (savedAutoSync !== null) {
-            autoSyncEnabled = savedAutoSync === 'true';
-            const autoSyncCheckbox = document.getElementById('autoSyncEnabled');
-            if (autoSyncCheckbox) {
-                autoSyncCheckbox.checked = autoSyncEnabled;
-            }
-        }
-        
-        // Initialize Dropbox connection
+        // Initialize Dropbox connection (will load data)
         checkDropboxConnection();
     </script>
 </body>
