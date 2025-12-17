@@ -1942,18 +1942,23 @@
             const connectedSection = document.getElementById('syncConnected');
             
             // Check if token is available
-            if (DROPBOX_ACCESS_TOKEN) {
+            if (DROPBOX_ACCESS_TOKEN && DROPBOX_ACCESS_TOKEN.startsWith('sl.')) {
+                // Token exists and looks valid, try to connect
                 dropboxConnected = true;
                 if (notConnected) notConnected.style.display = 'none';
                 if (connectedSection) connectedSection.style.display = 'block';
                 updateSyncUI(true);
+                updateSyncStatus('syncing', 'Connecting...');
+                
+                // Try to load from Dropbox (will handle errors gracefully)
                 loadFromDropbox();
                 startAutoSync();
             } else {
+                // No token or invalid format
                 dropboxConnected = false;
                 if (notConnected) notConnected.style.display = 'block';
                 if (connectedSection) connectedSection.style.display = 'none';
-                updateSyncStatus('offline', 'Local Only');
+                updateSyncStatus('offline', 'Not Connected');
             }
         }
         
@@ -2054,7 +2059,24 @@
                 }
             } catch (error) {
                 console.error('Error loading from Dropbox:', error);
-                if (error.message.includes('409')) {
+                
+                // Handle 401 Unauthorized - token is invalid or expired
+                if (error.message && error.message.includes('401')) {
+                    console.log('Dropbox token is invalid or expired');
+                    // Clear invalid token
+                    localStorage.removeItem('user_dropbox_token');
+                    DROPBOX_ACCESS_TOKEN = null;
+                    dropboxConnected = false;
+                    
+                    // Show reconnect UI
+                    const notConnected = document.getElementById('syncNotConnected');
+                    const connectedSection = document.getElementById('syncConnected');
+                    if (notConnected) notConnected.style.display = 'block';
+                    if (connectedSection) connectedSection.style.display = 'none';
+                    updateSyncStatus('offline', 'Token Expired');
+                    
+                    alert('Dropbox token expired or invalid. Please reconnect in Settings.');
+                } else if (error.message.includes('409')) {
                     // File doesn't exist, sync local data
                     await syncToDropbox();
                 } else {
@@ -2106,7 +2128,26 @@
                 }
             } catch (error) {
                 console.error('Error syncing to Dropbox:', error);
-                updateSyncStatus('error', 'Sync Failed');
+                
+                // Handle 401 Unauthorized
+                if (error.message && error.message.includes('401')) {
+                    console.log('Dropbox token is invalid or expired');
+                    // Clear invalid token
+                    localStorage.removeItem('user_dropbox_token');
+                    DROPBOX_ACCESS_TOKEN = null;
+                    dropboxConnected = false;
+                    
+                    // Show reconnect UI
+                    const notConnected = document.getElementById('syncNotConnected');
+                    const connectedSection = document.getElementById('syncConnected');
+                    if (notConnected) notConnected.style.display = 'block';
+                    if (connectedSection) connectedSection.style.display = 'none';
+                    updateSyncStatus('offline', 'Token Expired');
+                    
+                    alert('Dropbox token expired or invalid. Please reconnect in Settings.');
+                } else {
+                    updateSyncStatus('error', 'Sync Failed');
+                }
             } finally {
                 isSyncing = false;
             }
