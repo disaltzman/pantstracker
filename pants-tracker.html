@@ -978,6 +978,12 @@
 
         // Save data to Dropbox (debounced)
         async function saveData() {
+            // Don't save until initial load completes
+            if (!initialLoadComplete) {
+                console.log('Skipping save - waiting for initial load from Dropbox');
+                return;
+            }
+            
             // Clear previous timeout
             if (saveTimeout) clearTimeout(saveTimeout);
             
@@ -1891,6 +1897,7 @@
         let dropboxConnected = false;
         let isSyncing = false;
         let lastSyncTime = null;
+        let initialLoadComplete = false; // Prevent saving before first load
         
         // Saves the token from the input field and attempts connection
         function saveTokenAndConnect() {
@@ -2017,14 +2024,19 @@
                     renderInventoryTable();
                     renderWearHistory();
                     updateLogPantsDropdown();
-                    console.log('Loaded data from Dropbox');
+                    
+                    initialLoadComplete = true; // Now safe to save changes
+                    console.log('Loaded data from Dropbox - ready for changes');
                     
                     lastSyncTime = Date.now();
                     updateSyncStatus('synced', 'Synced');
                 } else if (response.status === 409) {
-                    // File doesn't exist yet, create empty one
-                    console.log('File not found, creating new file');
-                    await syncToDropbox();
+                    // File doesn't exist yet - initialize empty and mark as loaded
+                    console.log('No existing file - starting fresh');
+                    inventory = [];
+                    wearLog = [];
+                    initialLoadComplete = true;
+                    updateSyncStatus('synced', 'Ready');
                 } else {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
