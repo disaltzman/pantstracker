@@ -1591,19 +1591,12 @@
                 const pants = inventory.find(p => p.id === log.pantsId);
                 if (!pants) return;
                 
-                // Calculate wear number at time of this log
-                // Count how many wears of this pair happened on or before this date
-                const wearNumber = wearLog.filter(l => 
-                    l.pantsId === log.pantsId && 
-                    new Date(l.date) <= new Date(log.date)
-                ).length;
-                
                 html += `
                     <div class="wear-log-entry">
                         <div>
                             <div class="date">${new Date(log.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
                             <div><strong>${pants.brand} ${pants.model}</strong> - ${pants.color} (${pants.style})</div>
-                            <div style="color: #667eea; font-size: 0.9em; font-weight: 600; margin-top: 4px;">Wear #${wearNumber} for this pair</div>
+                            <div style="color: #667eea; font-size: 0.9em; font-weight: 600; margin-top: 4px;">Total wears: ${pants.wearCount}</div>
                             ${log.temperature ? `<div style="color: var(--text-secondary); font-size: 0.9em;">Temperature: ${log.temperature}°F</div>` : ''}
                             ${log.notes ? `<div style="color: var(--text-secondary); font-size: 0.9em; margin-top: 5px;">${log.notes}</div>` : ''}
                         </div>
@@ -2049,7 +2042,7 @@
         
         // IMPORTANT: Replace with your Dropbox App Key (NOT the secret!)
         // Get it from: https://www.dropbox.com/developers/apps
-        const DROPBOX_APP_KEY = 'f9o50r875mknj36';
+        const DROPBOX_APP_KEY = 'YOUR_APP_KEY_HERE';
         
         // Redirect URI - must match what's configured in Dropbox App Console
         // For local testing: http://localhost:8000/pants-tracker.html
