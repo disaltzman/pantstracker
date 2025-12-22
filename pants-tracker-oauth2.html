@@ -391,6 +391,126 @@
             font-size: 14px;
         }
 
+        /* Mobile Inventory Cards */
+        .inventory-cards {
+            display: none;
+        }
+
+        .inventory-card {
+            background: var(--section-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+        }
+
+        .inventory-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .inventory-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .inventory-card-title {
+            flex: 1;
+        }
+
+        .inventory-card-brand {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .inventory-card-model {
+            font-size: 0.95em;
+            color: var(--text-secondary);
+        }
+
+        .inventory-card-color {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 600;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .inventory-card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 16px;
+            margin-bottom: 12px;
+        }
+
+        .inventory-card-item {
+            font-size: 0.85em;
+        }
+
+        .inventory-card-label {
+            color: var(--text-secondary);
+            font-weight: 600;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .inventory-card-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .inventory-card-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .inventory-card-actions button {
+            flex: 1;
+            min-width: 120px;
+            font-size: 0.85em;
+            padding: 8px 12px;
+        }
+
+        /* Mobile: Hide table, show cards */
+        @media (max-width: 768px) {
+            .inventory-table-wrapper {
+                display: none;
+            }
+
+            .inventory-cards {
+                display: block;
+            }
+
+            /* Make form elements stack better on mobile */
+            .form-row {
+                flex-direction: column;
+            }
+
+            .filter-section .form-row {
+                gap: 15px;
+            }
+        }
+
+        /* Desktop: Show table, hide cards */
+        @media (min-width: 769px) {
+            .inventory-table-wrapper {
+                display: block;
+            }
+
+            .inventory-cards {
+                display: none;
+            }
+        }
+
         .recommendation-card {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
@@ -1294,6 +1414,80 @@
             });
 
             html += '</tbody></table></div>';
+            
+            // Build mobile card view
+            let cardsHtml = '<div class="inventory-cards">';
+            
+            filteredInventory.forEach(pants => {
+                const colorHex = colorMap[pants.color] || '#cccccc';
+                const textColor = ['White', 'Cream', 'Light Gray', 'Beige', 'Tan', 'Khaki', 'Light Blue'].includes(pants.color) ? '#000' : '#fff';
+                const lastWashed = pants.washHistory && pants.washHistory.length > 0 
+                    ? new Date(pants.washHistory[pants.washHistory.length - 1] + 'T00:00:00').toLocaleDateString() 
+                    : '-';
+                
+                cardsHtml += `
+                    <div class="inventory-card">
+                        <div class="inventory-card-header">
+                            <div class="inventory-card-title">
+                                <div class="inventory-card-brand">${pants.brand}</div>
+                                <div class="inventory-card-model">${pants.model}</div>
+                            </div>
+                            <span class="inventory-card-color" style="background: ${colorHex}; color: ${textColor};">
+                                ${pants.color}
+                            </span>
+                        </div>
+                        
+                        <div class="inventory-card-grid">
+                            <div class="inventory-card-item">
+                                <span class="inventory-card-label">Style</span>
+                                <span class="inventory-card-value">${pants.style}</span>
+                            </div>
+                            <div class="inventory-card-item">
+                                <span class="inventory-card-label">Size</span>
+                                <span class="inventory-card-value">${pants.size}</span>
+                            </div>
+                            <div class="inventory-card-item">
+                                <span class="inventory-card-label">Fabric</span>
+                                <span class="inventory-card-value">${pants.fabricType}</span>
+                            </div>
+                            <div class="inventory-card-item">
+                                <span class="inventory-card-label">Weight</span>
+                                <span class="inventory-card-value">${pants.fabricWeight}</span>
+                            </div>
+                            <div class="inventory-card-item">
+                                <span class="inventory-card-label">Total Wears</span>
+                                <span class="inventory-card-value" style="color: #667eea; font-weight: 700;">${pants.wearCount}</span>
+                            </div>
+                            <div class="inventory-card-item">
+                                <span class="inventory-card-label">Since Wash</span>
+                                <span class="inventory-card-value" style="color: #667eea; font-weight: 700;">${pants.wearsSinceWash}</span>
+                            </div>
+                            <div class="inventory-card-item">
+                                <span class="inventory-card-label">Times Washed</span>
+                                <span class="inventory-card-value">${pants.timesWashed > 0 
+                                    ? `<span style="cursor: pointer; color: #667eea; text-decoration: underline;" onclick="viewWashHistory(${pants.id})">${pants.timesWashed}</span>`
+                                    : pants.timesWashed
+                                }</span>
+                            </div>
+                            <div class="inventory-card-item">
+                                <span class="inventory-card-label">Last Worn</span>
+                                <span class="inventory-card-value">${pants.lastWorn ? new Date(pants.lastWorn + 'T00:00:00').toLocaleDateString() : '-'}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="inventory-card-actions">
+                            <button class="btn-secondary" onclick="markAsWashed(${pants.id})">🧼 Washed</button>
+                            <button class="btn-secondary" onclick="editPants(${pants.id})">✏️ Edit</button>
+                            <button class="btn-danger" onclick="deletePants(${pants.id})">🗑️ Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            cardsHtml += '</div>';
+            
+            // Combine both views
+            html = '<div class="inventory-table-wrapper">' + html + '</div>' + cardsHtml;
             
             if (filteredInventory.length === 0 && inventory.length > 0) {
                 html = `
