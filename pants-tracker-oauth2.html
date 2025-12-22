@@ -1505,17 +1505,29 @@
             if (filtered.length === 0) {
                 dropdown.innerHTML = '<div class="pants-dropdown-empty">No matching pants found</div>';
             } else {
-                dropdown.innerHTML = filtered.map(pants => `
-                    <div class="pants-dropdown-item" onclick="selectPants(${pants.id}, '${pants.brand} ${pants.model} - ${pants.color}')">
-                        <div class="pants-name">${pants.brand} ${pants.model} - ${pants.color}</div>
-                        <div class="pants-details">
-                            ${pants.style} • 
-                            ${pants.fabricWeight} • 
-                            ${pants.wearCount} wear${pants.wearCount !== 1 ? 's' : ''} • 
-                            ${pants.wearsSinceWash} since wash
+                dropdown.innerHTML = filtered.map(pants => {
+                    const displayName = `${pants.brand} ${pants.model} - ${pants.color}`;
+                    return `
+                        <div class="pants-dropdown-item" data-pants-id="${pants.id}" data-pants-name="${displayName.replace(/"/g, '&quot;')}">
+                            <div class="pants-name">${pants.brand} ${pants.model} - ${pants.color}</div>
+                            <div class="pants-details">
+                                ${pants.style} • 
+                                ${pants.fabricWeight} • 
+                                ${pants.wearCount} wear${pants.wearCount !== 1 ? 's' : ''} • 
+                                ${pants.wearsSinceWash} since wash
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
+                
+                // Add click handlers to all dropdown items
+                dropdown.querySelectorAll('.pants-dropdown-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const id = this.getAttribute('data-pants-id');
+                        const name = this.getAttribute('data-pants-name');
+                        selectPants(parseInt(id), name);
+                    });
+                });
             }
         }
 
