@@ -361,16 +361,17 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-            table-layout: auto;
+            table-layout: fixed;
         }
 
         th, td {
-            padding: 8px 10px;
+            padding: 6px 8px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
             color: var(--text-primary);
-            font-size: 0.9em;
-            white-space: nowrap;
+            font-size: 0.85em;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         th {
@@ -380,6 +381,7 @@
             position: sticky;
             top: 0;
             z-index: 10;
+            white-space: nowrap;
         }
 
         tr:hover {
@@ -387,20 +389,20 @@
         }
 
         /* Specific column widths for better fit */
-        table th:nth-child(1) { width: 10%; } /* Brand */
-        table th:nth-child(2) { width: 12%; } /* Model */
-        table th:nth-child(3) { width: 8%; }  /* Color */
-        table th:nth-child(4) { width: 6%; }  /* Size */
-        table th:nth-child(5) { width: 7%; }  /* Style */
-        table th:nth-child(6) { width: 8%; }  /* Fabric Type */
-        table th:nth-child(7) { width: 8%; }  /* Weight */
-        table th:nth-child(8) { width: 5%; }  /* Weight (oz) */
-        table th:nth-child(9) { width: 6%; }  /* Total Wears */
-        table th:nth-child(10) { width: 6%; } /* Since Wash */
-        table th:nth-child(11) { width: 6%; } /* Times Washed */
-        table th:nth-child(12) { width: 7%; } /* Last Washed */
-        table th:nth-child(13) { width: 7%; } /* Last Worn */
-        table th:nth-child(14) { width: 10%; } /* Actions */
+        table th:nth-child(1), table td:nth-child(1) { width: 8%; white-space: nowrap; } /* Brand */
+        table th:nth-child(2), table td:nth-child(2) { width: 11%; } /* Model */
+        table th:nth-child(3), table td:nth-child(3) { width: 7%; white-space: nowrap; } /* Color */
+        table th:nth-child(4), table td:nth-child(4) { width: 5%; white-space: nowrap; } /* Size */
+        table th:nth-child(5), table td:nth-child(5) { width: 6%; white-space: nowrap; } /* Style */
+        table th:nth-child(6), table td:nth-child(6) { width: 8%; } /* Fabric Type */
+        table th:nth-child(7), table td:nth-child(7) { width: 8%; } /* Weight */
+        table th:nth-child(8), table td:nth-child(8) { width: 4%; text-align: center; white-space: nowrap; } /* Weight (oz) */
+        table th:nth-child(9), table td:nth-child(9) { width: 5%; text-align: center; white-space: nowrap; } /* Total Wears */
+        table th:nth-child(10), table td:nth-child(10) { width: 7%; text-align: center; white-space: nowrap; } /* Since Wash */
+        table th:nth-child(11), table td:nth-child(11) { width: 5%; text-align: center; white-space: nowrap; } /* Times Washed */
+        table th:nth-child(12), table td:nth-child(12) { width: 7%; white-space: nowrap; } /* Last Washed */
+        table th:nth-child(13), table td:nth-child(13) { width: 7%; white-space: nowrap; } /* Last Worn */
+        table th:nth-child(14), table td:nth-child(14) { width: 12%; white-space: nowrap; } /* Actions */
 
         /* Mobile: larger touch targets */
         @media (max-width: 768px) {
@@ -412,15 +414,17 @@
 
         .action-buttons {
             display: flex;
-            gap: 4px;
+            gap: 2px;
             align-items: center;
             flex-wrap: nowrap;
+            justify-content: center;
         }
 
         .action-buttons button {
-            padding: 4px 8px;
-            font-size: 0.8em;
+            padding: 3px 6px;
+            font-size: 0.75em;
             white-space: nowrap;
+            min-width: auto;
         }
 
         /* Mobile: larger buttons */
@@ -1428,14 +1432,14 @@
                         <td><strong>${pants.brand}</strong></td>
                         <td>${pants.model}</td>
                         <td>
-                            <span style="display: inline-block; background: ${colorHex}; color: ${textColor}; padding: 2px 8px; border-radius: 4px; font-size: 0.85em; border: 1px solid #ddd;">
+                            <span style="display: inline-block; background: ${colorHex}; color: ${textColor}; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; border: 1px solid #ddd;">
                                 ${pants.color}
                             </span>
                         </td>
                         <td>${pants.size}</td>
                         <td>${pants.style}</td>
                         <td>${pants.fabricType}</td>
-                        <td>${pants.fabricWeight}</td>
+                        <td>${pants.fabricWeight === 'Lightweight' ? 'Light' : pants.fabricWeight === 'Heavyweight' ? 'Heavy' : pants.fabricWeight}</td>
                         <td>${pants.fabricWeightOz || '-'}</td>
                         <td><strong style="color: ${wearColor}; font-size: 1em;">${pants.wearCount}</strong></td>
                         <td><strong style="color: #667eea; font-size: 1em;">${pants.wearsSinceWash}</strong></td>
