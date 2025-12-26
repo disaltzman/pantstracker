@@ -361,34 +361,74 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            table-layout: auto;
         }
 
         th, td {
-            padding: 12px;
+            padding: 8px 10px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
             color: var(--text-primary);
+            font-size: 0.9em;
+            white-space: nowrap;
         }
 
         th {
             background: var(--section-bg);
             font-weight: 600;
             color: var(--text-primary);
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         tr:hover {
             background: var(--table-hover);
         }
 
+        /* Specific column widths for better fit */
+        table th:nth-child(1) { width: 10%; } /* Brand */
+        table th:nth-child(2) { width: 12%; } /* Model */
+        table th:nth-child(3) { width: 8%; }  /* Color */
+        table th:nth-child(4) { width: 6%; }  /* Size */
+        table th:nth-child(5) { width: 7%; }  /* Style */
+        table th:nth-child(6) { width: 8%; }  /* Fabric Type */
+        table th:nth-child(7) { width: 8%; }  /* Weight */
+        table th:nth-child(8) { width: 5%; }  /* Weight (oz) */
+        table th:nth-child(9) { width: 6%; }  /* Total Wears */
+        table th:nth-child(10) { width: 6%; } /* Since Wash */
+        table th:nth-child(11) { width: 6%; } /* Times Washed */
+        table th:nth-child(12) { width: 7%; } /* Last Washed */
+        table th:nth-child(13) { width: 7%; } /* Last Worn */
+        table th:nth-child(14) { width: 10%; } /* Actions */
+
+        /* Mobile: larger touch targets */
+        @media (max-width: 768px) {
+            th, td {
+                padding: 12px;
+                font-size: 1em;
+            }
+        }
+
         .action-buttons {
             display: flex;
-            gap: 8px;
+            gap: 4px;
             align-items: center;
+            flex-wrap: nowrap;
         }
 
         .action-buttons button {
-            padding: 6px 12px;
-            font-size: 14px;
+            padding: 4px 8px;
+            font-size: 0.8em;
+            white-space: nowrap;
+        }
+
+        /* Mobile: larger buttons */
+        @media (max-width: 768px) {
+            .action-buttons button {
+                padding: 6px 12px;
+                font-size: 0.85em;
+            }
         }
 
         /* Mobile Inventory Cards */
@@ -504,10 +544,18 @@
         @media (min-width: 769px) {
             .inventory-table-wrapper {
                 display: block;
+                width: 100%;
+                overflow-x: visible;
             }
 
             .inventory-cards {
                 display: none;
+            }
+
+            /* Ensure table fits in viewport */
+            .inventory-table-wrapper table {
+                width: 100%;
+                max-width: 100%;
             }
         }
 
@@ -1328,7 +1376,6 @@
             });
 
             let html = `
-                <div style="overflow-x: auto;">
                 <table>
                     <thead>
                         <tr>
@@ -1339,12 +1386,12 @@
                             <th>Style</th>
                             <th>Fabric Type</th>
                             <th>Weight</th>
-                            <th>Weight (oz)</th>
-                            <th>Total Wears</th>
-                            <th>Since Wash</th>
-                            <th>Times Washed</th>
-                            <th>Last Washed</th>
-                            <th>Last Worn</th>
+                            <th title="Weight in oz/sq yd">Wt (oz)</th>
+                            <th title="Total Wears">Wears</th>
+                            <th title="Wears Since Wash">Since Wash</th>
+                            <th title="Times Washed">Washed</th>
+                            <th title="Last Washed Date">Last Wash</th>
+                            <th title="Last Worn Date">Last Worn</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -1371,9 +1418,9 @@
                 if (pants.wearsSinceWash === undefined) pants.wearsSinceWash = pants.wearCount;
                 if (!pants.washHistory) pants.washHistory = [];
                 
-                // Get last washed date
+                // Get last washed date (short format)
                 const lastWashed = pants.washHistory.length > 0 
-                    ? new Date(pants.washHistory[pants.washHistory.length - 1] + 'T00:00:00').toLocaleDateString()
+                    ? new Date(pants.washHistory[pants.washHistory.length - 1] + 'T00:00:00').toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' })
                     : '-';
                 
                 html += `
@@ -1381,7 +1428,7 @@
                         <td><strong>${pants.brand}</strong></td>
                         <td>${pants.model}</td>
                         <td>
-                            <span style="display: inline-block; background: ${colorHex}; color: ${textColor}; padding: 4px 12px; border-radius: 4px; font-size: 0.9em; border: 1px solid #ddd;">
+                            <span style="display: inline-block; background: ${colorHex}; color: ${textColor}; padding: 2px 8px; border-radius: 4px; font-size: 0.85em; border: 1px solid #ddd;">
                                 ${pants.color}
                             </span>
                         </td>
@@ -1390,8 +1437,8 @@
                         <td>${pants.fabricType}</td>
                         <td>${pants.fabricWeight}</td>
                         <td>${pants.fabricWeightOz || '-'}</td>
-                        <td><strong style="color: ${wearColor}; font-size: 1.1em;">${pants.wearCount}</strong></td>
-                        <td><strong style="color: #667eea; font-size: 1.1em;">${pants.wearsSinceWash}</strong></td>
+                        <td><strong style="color: ${wearColor}; font-size: 1em;">${pants.wearCount}</strong></td>
+                        <td><strong style="color: #667eea; font-size: 1em;">${pants.wearsSinceWash}</strong></td>
                         <td>
                             ${pants.timesWashed > 0 
                                 ? `<span style="cursor: pointer; color: #667eea; text-decoration: underline;" onclick="viewWashHistory(${pants.id})">${pants.timesWashed}</span>`
@@ -1399,21 +1446,19 @@
                             }
                         </td>
                         <td>${lastWashed}</td>
-                        <td>${pants.lastWorn ? new Date(pants.lastWorn + 'T00:00:00').toLocaleDateString() : '-'}</td>
+                        <td>${pants.lastWorn ? new Date(pants.lastWorn + 'T00:00:00').toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' }) : '-'}</td>
                         <td>
-                            <div class="action-buttons" style="flex-direction: column; gap: 4px;">
-                                <button class="btn-secondary" onclick="markAsWashed(${pants.id})" style="font-size: 0.85em; padding: 4px 8px;">🧼 Washed</button>
-                                <div style="display: flex; gap: 4px;">
-                                    <button class="btn-secondary" onclick="editPants(${pants.id})" style="font-size: 0.85em; padding: 4px 8px;">Edit</button>
-                                    <button class="btn-danger" onclick="deletePants(${pants.id})" style="font-size: 0.85em; padding: 4px 8px;">Delete</button>
-                                </div>
+                            <div class="action-buttons">
+                                <button class="btn-secondary" onclick="markAsWashed(${pants.id})" title="Mark as Washed">🧼</button>
+                                <button class="btn-secondary" onclick="editPants(${pants.id})" title="Edit">✏️</button>
+                                <button class="btn-danger" onclick="deletePants(${pants.id})" title="Delete">🗑️</button>
                             </div>
                         </td>
                     </tr>
                 `;
             });
 
-            html += '</tbody></table></div>';
+            html += '</tbody></table>';
             
             // Build mobile card view
             let cardsHtml = '<div class="inventory-cards">';
