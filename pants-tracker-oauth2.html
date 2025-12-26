@@ -56,13 +56,20 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 95%;
             margin: 0 auto;
             background: var(--container-bg);
             border-radius: 16px;
             box-shadow: 0 20px 60px var(--shadow-color);
             overflow: hidden;
             transition: background 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* Limit width on very large screens for readability */
+        @media (min-width: 2000px) {
+            .container {
+                max-width: 1900px;
+            }
         }
 
         header {
@@ -240,8 +247,15 @@
 
         .tab-content {
             display: none;
-            padding: 30px;
+            padding: 20px;
             animation: fadeIn 0.3s;
+        }
+
+        /* More padding on mobile for touch targets */
+        @media (max-width: 768px) {
+            .tab-content {
+                padding: 20px;
+            }
         }
 
         .tab-content.active {
@@ -365,11 +379,11 @@
         }
 
         th, td {
-            padding: 6px 8px;
+            padding: 8px 10px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
             color: var(--text-primary);
-            font-size: 0.85em;
+            font-size: 0.88em;
             overflow: hidden;
             text-overflow: ellipsis;
         }
@@ -389,20 +403,20 @@
         }
 
         /* Specific column widths for better fit */
-        table th:nth-child(1), table td:nth-child(1) { width: 8%; white-space: nowrap; } /* Brand */
+        table th:nth-child(1), table td:nth-child(1) { width: 9%; white-space: nowrap; } /* Brand */
         table th:nth-child(2), table td:nth-child(2) { width: 11%; } /* Model */
         table th:nth-child(3), table td:nth-child(3) { width: 7%; white-space: nowrap; } /* Color */
         table th:nth-child(4), table td:nth-child(4) { width: 5%; white-space: nowrap; } /* Size */
         table th:nth-child(5), table td:nth-child(5) { width: 6%; white-space: nowrap; } /* Style */
         table th:nth-child(6), table td:nth-child(6) { width: 8%; } /* Fabric Type */
-        table th:nth-child(7), table td:nth-child(7) { width: 8%; } /* Weight */
+        table th:nth-child(7), table td:nth-child(7) { width: 7%; } /* Weight */
         table th:nth-child(8), table td:nth-child(8) { width: 4%; text-align: center; white-space: nowrap; } /* Weight (oz) */
-        table th:nth-child(9), table td:nth-child(9) { width: 5%; text-align: center; white-space: nowrap; } /* Total Wears */
-        table th:nth-child(10), table td:nth-child(10) { width: 7%; text-align: center; white-space: nowrap; } /* Since Wash */
-        table th:nth-child(11), table td:nth-child(11) { width: 5%; text-align: center; white-space: nowrap; } /* Times Washed */
-        table th:nth-child(12), table td:nth-child(12) { width: 7%; white-space: nowrap; } /* Last Washed */
-        table th:nth-child(13), table td:nth-child(13) { width: 7%; white-space: nowrap; } /* Last Worn */
-        table th:nth-child(14), table td:nth-child(14) { width: 12%; white-space: nowrap; } /* Actions */
+        table th:nth-child(9), table td:nth-child(9) { width: 6%; text-align: center; white-space: nowrap; } /* Total Wears */
+        table th:nth-child(10), table td:nth-child(10) { width: 6%; text-align: center; white-space: nowrap; } /* Since Wash */
+        table th:nth-child(11), table td:nth-child(11) { width: 6%; text-align: center; white-space: nowrap; } /* Times Washed */
+        table th:nth-child(12), table td:nth-child(12) { width: 8%; white-space: nowrap; } /* Last Washed */
+        table th:nth-child(13), table td:nth-child(13) { width: 8%; white-space: nowrap; } /* Last Worn */
+        table th:nth-child(14), table td:nth-child(14) { width: 9%; white-space: nowrap; } /* Actions */
 
         /* Mobile: larger touch targets */
         @media (max-width: 768px) {
@@ -414,15 +428,15 @@
 
         .action-buttons {
             display: flex;
-            gap: 2px;
+            gap: 3px;
             align-items: center;
             flex-wrap: nowrap;
             justify-content: center;
         }
 
         .action-buttons button {
-            padding: 3px 6px;
-            font-size: 0.75em;
+            padding: 4px 7px;
+            font-size: 0.8em;
             white-space: nowrap;
             min-width: auto;
         }
@@ -1391,10 +1405,10 @@
                             <th>Fabric Type</th>
                             <th>Weight</th>
                             <th title="Weight in oz/sq yd">Wt (oz)</th>
-                            <th title="Total Wears">Wears</th>
+                            <th title="Total Wears">Total Wears</th>
                             <th title="Wears Since Wash">Since Wash</th>
-                            <th title="Times Washed">Washed</th>
-                            <th title="Last Washed Date">Last Wash</th>
+                            <th title="Times Washed">Times Washed</th>
+                            <th title="Last Washed Date">Last Washed</th>
                             <th title="Last Worn Date">Last Worn</th>
                             <th>Actions</th>
                         </tr>
@@ -2295,8 +2309,7 @@
         // DROPBOX OAUTH2 CONFIGURATION
         // ========================================
         
-        // IMPORTANT: Replace with your Dropbox App Key (NOT the secret!)
-        // Get it from: https://www.dropbox.com/developers/apps
+        // Your Dropbox App Key
         const DROPBOX_APP_KEY = 'f9o50r875mknj36';
         
         // Redirect URI - must match what's configured in Dropbox App Console
