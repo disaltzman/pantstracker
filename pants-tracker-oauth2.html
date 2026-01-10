@@ -1865,7 +1865,9 @@
                         <div>
                             <div class="date">${new Date(log.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
                             <div><strong>${pants.brand} ${pants.model}</strong> - ${pants.color} (${pants.style})</div>
-                            <div style="color: #667eea; font-size: 0.9em; font-weight: 600; margin-top: 4px;">Total wears: ${pants.wearCount}</div>
+                            <div style="color: #667eea; font-size: 0.9em; font-weight: 600; margin-top: 4px;">
+                                Total wears: ${pants.wearCount} • Wears since wash: ${pants.wearsSinceWash || 0}
+                            </div>
                             ${log.temperature ? `<div style="color: var(--text-secondary); font-size: 0.9em;">Temperature: ${log.temperature}°F</div>` : ''}
                             ${log.notes ? `<div style="color: var(--text-secondary); font-size: 0.9em; margin-top: 5px;">${log.notes}</div>` : ''}
                         </div>
