@@ -483,6 +483,25 @@
             color: var(--text-primary);
         }
 
+        .filter-dropdown-search {
+            margin-bottom: 10px;
+        }
+
+        .filter-dropdown-search input {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.85em;
+            background: var(--container-bg);
+            color: var(--text-primary);
+        }
+
+        .filter-dropdown-search input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
         .filter-dropdown-controls {
             display: flex;
             gap: 8px;
@@ -1415,7 +1434,6 @@
         
         // Toggle filter dropdown
         function toggleFilter(event, column) {
-            console.log('toggleFilter called', column, event);
             event.stopPropagation();
             
             // Close any open dropdown
@@ -1430,7 +1448,6 @@
             
             // Get unique values for this column
             const uniqueValues = getUniqueValues(column);
-            console.log('unique values:', uniqueValues);
             
             // Initialize filter if not exists
             if (!columnFilters[column]) {
@@ -1439,7 +1456,6 @@
             
             // Create filter dropdown
             const th = event.currentTarget.closest('th');
-            console.log('Found th:', th);
             const dropdown = document.createElement('div');
             dropdown.className = 'filter-dropdown active';
             dropdown.onclick = (e) => e.stopPropagation();
@@ -1449,18 +1465,26 @@
                     <h4>Filter: ${column}</h4>
                     <button onclick="closeAllFilters()" style="background: none; border: none; font-size: 1.2em; cursor: pointer; padding: 0; color: var(--text-secondary);">✕</button>
                 </div>
-                <div class="filter-dropdown-controls">
-                    <button onclick="selectAllFilter('${column}')">Select All</button>
-                    <button onclick="deselectAllFilter('${column}')">Clear</button>
+                <div class="filter-dropdown-search">
+                    <input type="text" 
+                           id="filterSearch_${column}" 
+                           placeholder="Search values..." 
+                           oninput="filterDropdownOptions('${column}')"
+                           onclick="event.stopPropagation()">
                 </div>
-                <div class="filter-options">
+                <div class="filter-dropdown-controls">
+                    <button onclick="selectAllVisibleFilter('${column}')">Select All</button>
+                    <button onclick="deselectAllVisibleFilter('${column}')">Clear All</button>
+                </div>
+                <div class="filter-options" id="filterOptions_${column}">
             `;
             
             uniqueValues.forEach(value => {
                 const checked = columnFilters[column].has(value) ? 'checked' : '';
                 const safeValue = value.replace(/'/g, "\\'");
+                const escapedValue = value.replace(/"/g, '&quot;');
                 html += `
-                    <div class="filter-option">
+                    <div class="filter-option" data-value="${escapedValue.toLowerCase()}">
                         <input type="checkbox" id="filter_${column}_${value}" ${checked} onchange="toggleFilterValue('${column}', '${safeValue}')">
                         <label for="filter_${column}_${value}">${value}</label>
                     </div>
@@ -1470,9 +1494,64 @@
             html += '</div>';
             dropdown.innerHTML = html;
             
-            console.log('Appending dropdown to th');
             th.appendChild(dropdown);
-            console.log('Dropdown appended, classList:', dropdown.classList);
+        }
+        
+        // Filter dropdown options based on search
+        function filterDropdownOptions(column) {
+            const searchInput = document.getElementById(`filterSearch_${column}`);
+            const searchTerm = searchInput.value.toLowerCase();
+            const options = document.querySelectorAll(`#filterOptions_${column} .filter-option`);
+            
+            options.forEach(option => {
+                const value = option.getAttribute('data-value');
+                if (value.includes(searchTerm)) {
+                    option.style.display = 'flex';
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+        }
+        
+        // Select all visible filter options
+        function selectAllVisibleFilter(column) {
+            const options = document.querySelectorAll(`#filterOptions_${column} .filter-option`);
+            const uniqueValues = getUniqueValues(column);
+            
+            options.forEach(option => {
+                if (option.style.display !== 'none') {
+                    const checkbox = option.querySelector('input[type="checkbox"]');
+                    if (checkbox && !checkbox.checked) {
+                        checkbox.checked = true;
+                        // Get the actual value from the label
+                        const label = option.querySelector('label');
+                        const value = label.textContent;
+                        columnFilters[column].add(value);
+                    }
+                }
+            });
+            
+            renderInventoryTable();
+        }
+        
+        // Deselect all visible filter options
+        function deselectAllVisibleFilter(column) {
+            const options = document.querySelectorAll(`#filterOptions_${column} .filter-option`);
+            
+            options.forEach(option => {
+                if (option.style.display !== 'none') {
+                    const checkbox = option.querySelector('input[type="checkbox"]');
+                    if (checkbox && checkbox.checked) {
+                        checkbox.checked = false;
+                        // Get the actual value from the label
+                        const label = option.querySelector('label');
+                        const value = label.textContent;
+                        columnFilters[column].delete(value);
+                    }
+                }
+            });
+            
+            renderInventoryTable();
         }
         
         // Toggle a filter value
@@ -1486,33 +1565,6 @@
         }
         
         // Select all values for a column
-        function selectAllFilter(column) {
-            const uniqueValues = getUniqueValues(column);
-            columnFilters[column] = new Set(uniqueValues);
-            
-            // Update checkboxes
-            uniqueValues.forEach(value => {
-                const checkbox = document.getElementById(`filter_${column}_${value}`);
-                if (checkbox) checkbox.checked = true;
-            });
-            
-            renderInventoryTable();
-        }
-        
-        // Deselect all values for a column
-        function deselectAllFilter(column) {
-            columnFilters[column] = new Set();
-            
-            // Update checkboxes
-            const uniqueValues = getUniqueValues(column);
-            uniqueValues.forEach(value => {
-                const checkbox = document.getElementById(`filter_${column}_${value}`);
-                if (checkbox) checkbox.checked = false;
-            });
-            
-            renderInventoryTable();
-        }
-        
         // Close all filter dropdowns
         function closeAllFilters() {
             document.querySelectorAll('.filter-dropdown').forEach(d => d.remove());
