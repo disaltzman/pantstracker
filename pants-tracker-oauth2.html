@@ -56,7 +56,7 @@
         }
 
         .container {
-            max-width: 95%;
+            max-width: 98%;
             margin: 0 auto;
             background: var(--container-bg);
             border-radius: 16px;
@@ -66,9 +66,9 @@
         }
 
         /* Limit width on very large screens for readability */
-        @media (min-width: 2000px) {
+        @media (min-width: 2560px) {
             .container {
-                max-width: 1900px;
+                max-width: 2400px;
             }
         }
 
@@ -376,6 +376,7 @@
             border-collapse: collapse;
             margin-top: 20px;
             table-layout: fixed;
+            overflow: visible;
         }
 
         th, td {
@@ -384,6 +385,9 @@
             border-bottom: 1px solid var(--border-color);
             color: var(--text-primary);
             font-size: 0.88em;
+        }
+
+        td {
             overflow: hidden;
             text-overflow: ellipsis;
         }
@@ -399,6 +403,15 @@
             cursor: pointer;
             user-select: none;
             padding: 8px 4px;
+            overflow: visible;
+        }
+
+        thead {
+            overflow: visible;
+        }
+
+        thead tr {
+            overflow: visible;
         }
 
         th:hover {
@@ -447,7 +460,7 @@
             max-width: 300px;
             max-height: 400px;
             overflow-y: auto;
-            z-index: 1000;
+            z-index: 2000;
             display: none;
         }
 
@@ -1375,7 +1388,7 @@
         function getFilterIcon(column) {
             const isActive = hasActiveFilter(column);
             const activeClass = isActive ? 'active' : '';
-            return `<span class="filter-icon ${activeClass}" onclick="toggleFilter(event, '${column}')">▼</span>`;
+            return `<span class="filter-icon ${activeClass}" onclick="toggleFilter(event || window.event, '${column}'); return false;">▼</span>`;
         }
         
         // Get unique values for a column
@@ -1402,6 +1415,7 @@
         
         // Toggle filter dropdown
         function toggleFilter(event, column) {
+            console.log('toggleFilter called', column, event);
             event.stopPropagation();
             
             // Close any open dropdown
@@ -1416,6 +1430,7 @@
             
             // Get unique values for this column
             const uniqueValues = getUniqueValues(column);
+            console.log('unique values:', uniqueValues);
             
             // Initialize filter if not exists
             if (!columnFilters[column]) {
@@ -1424,6 +1439,7 @@
             
             // Create filter dropdown
             const th = event.currentTarget.closest('th');
+            console.log('Found th:', th);
             const dropdown = document.createElement('div');
             dropdown.className = 'filter-dropdown active';
             dropdown.onclick = (e) => e.stopPropagation();
@@ -1454,7 +1470,9 @@
             html += '</div>';
             dropdown.innerHTML = html;
             
+            console.log('Appending dropdown to th');
             th.appendChild(dropdown);
+            console.log('Dropdown appended, classList:', dropdown.classList);
         }
         
         // Toggle a filter value
