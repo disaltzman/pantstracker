@@ -396,6 +396,41 @@
             top: 0;
             z-index: 10;
             white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+            padding: 8px 4px;
+        }
+
+        th:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        th .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4px;
+            width: 100%;
+        }
+
+        th .sort-indicator {
+            font-size: 0.8em;
+            opacity: 0.4;
+            margin-left: auto;
+        }
+
+        th .sort-indicator.active {
+            opacity: 1;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        th.no-sort {
+            cursor: default;
+        }
+
+        th.no-sort:hover {
+            background: var(--section-bg);
         }
 
         tr:hover {
@@ -947,48 +982,13 @@
             </form>
 
             <div class="filter-section">
-                <h3 style="margin-bottom: 15px; color: var(--text-primary);">Filter & Sort</h3>
-                <div class="form-row">
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label for="filterColumn">Filter by Column</label>
-                        <select id="filterColumn" onchange="updateFilterInput()">
-                            <option value="">All Columns</option>
-                            <option value="brand">Brand</option>
-                            <option value="model">Model</option>
-                            <option value="color">Color</option>
-                            <option value="size">Size</option>
-                            <option value="style">Style</option>
-                            <option value="fabricType">Fabric Type</option>
-                            <option value="fabricWeight">Weight Category</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label for="filterValue">Filter Value</label>
-                        <input type="text" id="filterValue" placeholder="Type to filter..." oninput="applyFilters()">
-                    </div>
+                <h3 style="margin-bottom: 15px; color: var(--text-primary);">Quick Search</h3>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <input type="text" id="quickSearch" placeholder="Search across all columns..." oninput="renderInventoryTable()">
                 </div>
-                <div class="form-row" style="margin-top: 15px;">
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label for="sortColumn">Sort by</label>
-                        <select id="sortColumn" onchange="applyFilters()">
-                            <option value="wearCount">Wear Count</option>
-                            <option value="brand">Brand</option>
-                            <option value="model">Model</option>
-                            <option value="color">Color</option>
-                            <option value="lastWorn">Last Worn</option>
-                            <option value="style">Style</option>
-                            <option value="fabricType">Fabric Type</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label for="sortOrder">Order</label>
-                        <select id="sortOrder" onchange="applyFilters()">
-                            <option value="desc">Descending</option>
-                            <option value="asc">Ascending</option>
-                        </select>
-                    </div>
-                </div>
-                <button onclick="resetFilters()" class="btn-secondary" style="margin-top: 15px;">Reset Filters</button>
+                <p style="color: var(--text-secondary); font-size: 0.85em; margin-top: 8px;">
+                    💡 Click column headers to sort. Use search to filter.
+                </p>
             </div>
             
             <div id="inventoryTable"></div>
@@ -1228,6 +1228,33 @@
         // Data structure
         let inventory = [];
         let wearLog = [];
+        
+        // Sort state for Excel-style table headers
+        let currentSortColumn = 'brand';
+        let currentSortOrder = 'asc';
+        
+        // Function to sort by column
+        function sortByColumn(column) {
+            if (currentSortColumn === column) {
+                // Toggle sort order
+                currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+            } else {
+                // New column, default to ascending
+                currentSortColumn = column;
+                currentSortOrder = 'asc';
+            }
+            renderInventoryTable();
+        }
+        
+        // Helper to generate sort indicator
+        function getSortIndicator(column) {
+            if (currentSortColumn !== column) {
+                return '<span class="sort-indicator">⇅</span>';
+            }
+            return currentSortOrder === 'asc' 
+                ? '<span class="sort-indicator active">▲</span>' 
+                : '<span class="sort-indicator active">▼</span>';
+        }
 
         // Load data from localStorage on startup
         function loadData() {
@@ -1344,52 +1371,53 @@
                 return;
             }
 
-            // Apply filters and sorting
+            // Apply quick search filter
             let filteredInventory = [...inventory];
             
-            const filterColumn = document.getElementById('filterColumn')?.value;
-            const filterValue = document.getElementById('filterValue')?.value.toLowerCase();
+            const searchValue = document.getElementById('quickSearch')?.value.toLowerCase();
             
-            if (filterColumn && filterValue) {
-                filteredInventory = filteredInventory.filter(pants => {
-                    const value = pants[filterColumn]?.toString().toLowerCase() || '';
-                    return value.includes(filterValue);
-                });
-            } else if (filterValue && !filterColumn) {
+            if (searchValue) {
                 // Search all columns
                 filteredInventory = filteredInventory.filter(pants => {
                     return Object.values(pants).some(val => 
-                        val?.toString().toLowerCase().includes(filterValue)
+                        val?.toString().toLowerCase().includes(searchValue)
                     );
                 });
             }
 
-            // Apply sorting
-            const sortColumn = document.getElementById('sortColumn')?.value || 'brand';
-            const sortOrder = document.getElementById('sortOrder')?.value || 'asc';
-            
+            // Apply sorting based on current column
             filteredInventory.sort((a, b) => {
-                let aVal = a[sortColumn];
-                let bVal = b[sortColumn];
+                let aVal = a[currentSortColumn];
+                let bVal = b[currentSortColumn];
+                
+                // Special handling for lastWashed (derived from washHistory)
+                if (currentSortColumn === 'lastWashed') {
+                    aVal = a.washHistory && a.washHistory.length > 0 
+                        ? a.washHistory[a.washHistory.length - 1] 
+                        : '';
+                    bVal = b.washHistory && b.washHistory.length > 0 
+                        ? b.washHistory[b.washHistory.length - 1] 
+                        : '';
+                }
                 
                 // Handle null values
                 if (aVal === null || aVal === undefined) aVal = '';
                 if (bVal === null || bVal === undefined) bVal = '';
                 
                 // Handle numbers
-                if (sortColumn === 'wearCount') {
+                if (['wearCount', 'wearsSinceWash', 'timesWashed', 'fabricWeightOz'].includes(currentSortColumn)) {
                     aVal = parseInt(aVal) || 0;
                     bVal = parseInt(bVal) || 0;
                 }
                 
                 // Handle dates
-                if (sortColumn === 'lastWorn') {
+                if (['lastWorn', 'lastWashed'].includes(currentSortColumn)) {
                     aVal = aVal ? new Date(aVal) : new Date(0);
                     bVal = bVal ? new Date(bVal) : new Date(0);
                 }
                 
-                if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
-                if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+                if (aVal < bVal) return currentSortOrder === 'asc' ? -1 : 1;
+                if (aVal > bVal) return currentSortOrder === 'asc' ? 1 : -1;
                 return 0;
             });
 
@@ -1397,17 +1425,50 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Brand</th>
-                            <th>Model</th>
-                            <th>Color</th>
-                            <th>Size</th>
-                            <th>Style</th>
-                            <th>Fabric Type</th>
-                            <th>Weight</th>
-                            <th title="Weight in oz/sq yd">Wt (oz)</th>
-                            <th title="Total Wears">Total Wears</th>
-                            <th title="Wears Since Wash">Since Wash</th>
-                            <th title="Times Washed">Times Washed</th>
+                            <th onclick="sortByColumn('brand')">
+                                <div class="header-content">Brand ${getSortIndicator('brand')}</div>
+                            </th>
+                            <th onclick="sortByColumn('model')">
+                                <div class="header-content">Model ${getSortIndicator('model')}</div>
+                            </th>
+                            <th onclick="sortByColumn('color')">
+                                <div class="header-content">Color ${getSortIndicator('color')}</div>
+                            </th>
+                            <th onclick="sortByColumn('size')">
+                                <div class="header-content">Size ${getSortIndicator('size')}</div>
+                            </th>
+                            <th onclick="sortByColumn('style')">
+                                <div class="header-content">Style ${getSortIndicator('style')}</div>
+                            </th>
+                            <th onclick="sortByColumn('fabricType')">
+                                <div class="header-content">Fabric Type ${getSortIndicator('fabricType')}</div>
+                            </th>
+                            <th onclick="sortByColumn('fabricWeight')">
+                                <div class="header-content">Weight ${getSortIndicator('fabricWeight')}</div>
+                            </th>
+                            <th onclick="sortByColumn('fabricWeightOz')" title="Weight in oz/sq yd">
+                                <div class="header-content">Wt (oz) ${getSortIndicator('fabricWeightOz')}</div>
+                            </th>
+                            <th onclick="sortByColumn('wearCount')" title="Total Wears">
+                                <div class="header-content">Total Wears ${getSortIndicator('wearCount')}</div>
+                            </th>
+                            <th onclick="sortByColumn('wearsSinceWash')" title="Wears Since Wash">
+                                <div class="header-content">Since Wash ${getSortIndicator('wearsSinceWash')}</div>
+                            </th>
+                            <th onclick="sortByColumn('timesWashed')" title="Times Washed">
+                                <div class="header-content">Times Washed ${getSortIndicator('timesWashed')}</div>
+                            </th>
+                            <th onclick="sortByColumn('lastWashed')" title="Last Washed Date">
+                                <div class="header-content">Last Washed ${getSortIndicator('lastWashed')}</div>
+                            </th>
+                            <th onclick="sortByColumn('lastWorn')" title="Last Worn Date">
+                                <div class="header-content">Last Worn ${getSortIndicator('lastWorn')}</div>
+                            </th>
+                            <th class="no-sort">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
                             <th title="Last Washed Date">Last Washed</th>
                             <th title="Last Worn Date">Last Worn</th>
                             <th>Actions</th>
@@ -1565,31 +1626,6 @@
         }
 
         // Filter and sort functions
-        function updateFilterInput() {
-            const filterColumn = document.getElementById('filterColumn').value;
-            const filterValue = document.getElementById('filterValue');
-            
-            if (filterColumn) {
-                filterValue.placeholder = `Filter by ${filterColumn}...`;
-            } else {
-                filterValue.placeholder = 'Type to filter all columns...';
-            }
-            
-            applyFilters();
-        }
-
-        function applyFilters() {
-            renderInventoryTable();
-        }
-
-        function resetFilters() {
-            document.getElementById('filterColumn').value = '';
-            document.getElementById('filterValue').value = '';
-            document.getElementById('sortColumn').value = 'brand';
-            document.getElementById('sortOrder').value = 'asc';
-            renderInventoryTable();
-        }
-
         // Mark pants as washed
         function markAsWashed(id) {
             const pants = inventory.find(p => p.id === id);
