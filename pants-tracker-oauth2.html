@@ -433,6 +433,112 @@
             background: var(--section-bg);
         }
 
+        /* Column Filter Dropdowns */
+        .filter-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: var(--input-bg);
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            padding: 12px;
+            min-width: 200px;
+            max-width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .filter-dropdown.active {
+            display: block;
+        }
+
+        .filter-dropdown-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .filter-dropdown-header h4 {
+            margin: 0;
+            font-size: 0.9em;
+            color: var(--text-primary);
+        }
+
+        .filter-dropdown-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .filter-dropdown-controls button {
+            padding: 4px 8px;
+            font-size: 0.75em;
+            background: var(--section-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            color: var(--text-primary);
+        }
+
+        .filter-dropdown-controls button:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #667eea;
+        }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            padding: 6px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-bottom: 2px;
+        }
+
+        .filter-option:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .filter-option input[type="checkbox"] {
+            margin-right: 8px;
+            cursor: pointer;
+            width: auto;
+            padding: 0;
+        }
+
+        .filter-option label {
+            cursor: pointer;
+            font-size: 0.85em;
+            color: var(--text-primary);
+            margin: 0;
+            flex: 1;
+        }
+
+        .filter-icon {
+            font-size: 0.7em;
+            opacity: 0.3;
+            margin-left: 4px;
+            cursor: pointer;
+        }
+
+        .filter-icon:hover {
+            opacity: 0.6;
+        }
+
+        .filter-icon.active {
+            opacity: 1;
+            color: #f5576c;
+        }
+
+        th {
+            position: relative;
+        }
+
         tr:hover {
             background: var(--table-hover);
         }
@@ -982,12 +1088,15 @@
             </form>
 
             <div class="filter-section">
-                <h3 style="margin-bottom: 15px; color: var(--text-primary);">Quick Search</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; color: var(--text-primary);">Quick Search & Filters</h3>
+                    <button onclick="clearAllFilters()" class="btn-secondary" style="font-size: 0.85em; padding: 6px 12px;">Clear All Filters</button>
+                </div>
                 <div class="form-group" style="margin-bottom: 0;">
                     <input type="text" id="quickSearch" placeholder="Search across all columns..." oninput="renderInventoryTable()">
                 </div>
                 <p style="color: var(--text-secondary); font-size: 0.85em; margin-top: 8px;">
-                    💡 Click column headers to sort. Use search to filter.
+                    💡 Click column headers to sort. Click <span style="color: #667eea;">▼</span> to filter columns.
                 </p>
             </div>
             
@@ -1233,6 +1342,12 @@
         let currentSortColumn = 'brand';
         let currentSortOrder = 'asc';
         
+        // Column filter state - tracks which values are selected for each column
+        let columnFilters = {};
+        
+        // Currently open filter dropdown
+        let openFilterColumn = null;
+        
         // Function to sort by column
         function sortByColumn(column) {
             if (currentSortColumn === column) {
@@ -1255,6 +1370,157 @@
                 ? '<span class="sort-indicator active">▲</span>' 
                 : '<span class="sort-indicator active">▼</span>';
         }
+        
+        // Helper to generate filter icon
+        function getFilterIcon(column) {
+            const isActive = hasActiveFilter(column);
+            const activeClass = isActive ? 'active' : '';
+            return `<span class="filter-icon ${activeClass}" onclick="toggleFilter(event, '${column}')">▼</span>`;
+        }
+        
+        // Get unique values for a column
+        function getUniqueValues(column) {
+            const values = new Set();
+            inventory.forEach(pants => {
+                let value = pants[column];
+                
+                // Special handling for lastWashed
+                if (column === 'lastWashed') {
+                    value = pants.washHistory && pants.washHistory.length > 0 
+                        ? pants.washHistory[pants.washHistory.length - 1] 
+                        : null;
+                }
+                
+                if (value !== null && value !== undefined && value !== '') {
+                    values.add(value.toString());
+                } else {
+                    values.add('(Blank)');
+                }
+            });
+            return Array.from(values).sort();
+        }
+        
+        // Toggle filter dropdown
+        function toggleFilter(event, column) {
+            event.stopPropagation();
+            
+            // Close any open dropdown
+            document.querySelectorAll('.filter-dropdown').forEach(d => d.remove());
+            
+            if (openFilterColumn === column) {
+                openFilterColumn = null;
+                return;
+            }
+            
+            openFilterColumn = column;
+            
+            // Get unique values for this column
+            const uniqueValues = getUniqueValues(column);
+            
+            // Initialize filter if not exists
+            if (!columnFilters[column]) {
+                columnFilters[column] = new Set(uniqueValues);
+            }
+            
+            // Create filter dropdown
+            const th = event.currentTarget.closest('th');
+            const dropdown = document.createElement('div');
+            dropdown.className = 'filter-dropdown active';
+            dropdown.onclick = (e) => e.stopPropagation();
+            
+            let html = `
+                <div class="filter-dropdown-header">
+                    <h4>Filter: ${column}</h4>
+                    <button onclick="closeAllFilters()" style="background: none; border: none; font-size: 1.2em; cursor: pointer; padding: 0; color: var(--text-secondary);">✕</button>
+                </div>
+                <div class="filter-dropdown-controls">
+                    <button onclick="selectAllFilter('${column}')">Select All</button>
+                    <button onclick="deselectAllFilter('${column}')">Clear</button>
+                </div>
+                <div class="filter-options">
+            `;
+            
+            uniqueValues.forEach(value => {
+                const checked = columnFilters[column].has(value) ? 'checked' : '';
+                const safeValue = value.replace(/'/g, "\\'");
+                html += `
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter_${column}_${value}" ${checked} onchange="toggleFilterValue('${column}', '${safeValue}')">
+                        <label for="filter_${column}_${value}">${value}</label>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            dropdown.innerHTML = html;
+            
+            th.appendChild(dropdown);
+        }
+        
+        // Toggle a filter value
+        function toggleFilterValue(column, value) {
+            if (columnFilters[column].has(value)) {
+                columnFilters[column].delete(value);
+            } else {
+                columnFilters[column].add(value);
+            }
+            renderInventoryTable();
+        }
+        
+        // Select all values for a column
+        function selectAllFilter(column) {
+            const uniqueValues = getUniqueValues(column);
+            columnFilters[column] = new Set(uniqueValues);
+            
+            // Update checkboxes
+            uniqueValues.forEach(value => {
+                const checkbox = document.getElementById(`filter_${column}_${value}`);
+                if (checkbox) checkbox.checked = true;
+            });
+            
+            renderInventoryTable();
+        }
+        
+        // Deselect all values for a column
+        function deselectAllFilter(column) {
+            columnFilters[column] = new Set();
+            
+            // Update checkboxes
+            const uniqueValues = getUniqueValues(column);
+            uniqueValues.forEach(value => {
+                const checkbox = document.getElementById(`filter_${column}_${value}`);
+                if (checkbox) checkbox.checked = false;
+            });
+            
+            renderInventoryTable();
+        }
+        
+        // Close all filter dropdowns
+        function closeAllFilters() {
+            document.querySelectorAll('.filter-dropdown').forEach(d => d.remove());
+            openFilterColumn = null;
+        }
+        
+        // Check if column has active filter
+        function hasActiveFilter(column) {
+            if (!columnFilters[column]) return false;
+            const uniqueValues = getUniqueValues(column);
+            return columnFilters[column].size < uniqueValues.length;
+        }
+        
+        // Clear all filters
+        function clearAllFilters() {
+            columnFilters = {};
+            closeAllFilters();
+            renderInventoryTable();
+        }
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.filter-dropdown') && !e.target.closest('.filter-icon')) {
+                closeAllFilters();
+            }
+        });
 
         // Load data from localStorage on startup
         function loadData() {
@@ -1371,9 +1637,33 @@
                 return;
             }
 
-            // Apply quick search filter
+            // Apply column filters first
             let filteredInventory = [...inventory];
             
+            // Apply each column filter
+            Object.keys(columnFilters).forEach(column => {
+                if (columnFilters[column].size > 0) {
+                    filteredInventory = filteredInventory.filter(pants => {
+                        let value = pants[column];
+                        
+                        // Special handling for lastWashed
+                        if (column === 'lastWashed') {
+                            value = pants.washHistory && pants.washHistory.length > 0 
+                                ? pants.washHistory[pants.washHistory.length - 1] 
+                                : null;
+                        }
+                        
+                        // Convert to string for comparison
+                        const valueStr = (value !== null && value !== undefined && value !== '') 
+                            ? value.toString() 
+                            : '(Blank)';
+                        
+                        return columnFilters[column].has(valueStr);
+                    });
+                }
+            });
+            
+            // Then apply quick search filter
             const searchValue = document.getElementById('quickSearch')?.value.toLowerCase();
             
             if (searchValue) {
@@ -1426,43 +1716,43 @@
                     <thead>
                         <tr>
                             <th onclick="sortByColumn('brand')">
-                                <div class="header-content">Brand ${getSortIndicator('brand')}</div>
+                                <div class="header-content">Brand ${getSortIndicator('brand')} ${getFilterIcon('brand')}</div>
                             </th>
                             <th onclick="sortByColumn('model')">
-                                <div class="header-content">Model ${getSortIndicator('model')}</div>
+                                <div class="header-content">Model ${getSortIndicator('model')} ${getFilterIcon('model')}</div>
                             </th>
                             <th onclick="sortByColumn('color')">
-                                <div class="header-content">Color ${getSortIndicator('color')}</div>
+                                <div class="header-content">Color ${getSortIndicator('color')} ${getFilterIcon('color')}</div>
                             </th>
                             <th onclick="sortByColumn('size')">
-                                <div class="header-content">Size ${getSortIndicator('size')}</div>
+                                <div class="header-content">Size ${getSortIndicator('size')} ${getFilterIcon('size')}</div>
                             </th>
                             <th onclick="sortByColumn('style')">
-                                <div class="header-content">Style ${getSortIndicator('style')}</div>
+                                <div class="header-content">Style ${getSortIndicator('style')} ${getFilterIcon('style')}</div>
                             </th>
                             <th onclick="sortByColumn('fabricType')">
-                                <div class="header-content">Fabric Type ${getSortIndicator('fabricType')}</div>
+                                <div class="header-content">Fabric Type ${getSortIndicator('fabricType')} ${getFilterIcon('fabricType')}</div>
                             </th>
                             <th onclick="sortByColumn('fabricWeight')">
-                                <div class="header-content">Weight ${getSortIndicator('fabricWeight')}</div>
+                                <div class="header-content">Weight ${getSortIndicator('fabricWeight')} ${getFilterIcon('fabricWeight')}</div>
                             </th>
                             <th onclick="sortByColumn('fabricWeightOz')" title="Weight in oz/sq yd">
-                                <div class="header-content">Wt (oz) ${getSortIndicator('fabricWeightOz')}</div>
+                                <div class="header-content">Wt (oz) ${getSortIndicator('fabricWeightOz')} ${getFilterIcon('fabricWeightOz')}</div>
                             </th>
                             <th onclick="sortByColumn('wearCount')" title="Total Wears">
-                                <div class="header-content">Total Wears ${getSortIndicator('wearCount')}</div>
+                                <div class="header-content">Total Wears ${getSortIndicator('wearCount')} ${getFilterIcon('wearCount')}</div>
                             </th>
                             <th onclick="sortByColumn('wearsSinceWash')" title="Wears Since Wash">
-                                <div class="header-content">Since Wash ${getSortIndicator('wearsSinceWash')}</div>
+                                <div class="header-content">Since Wash ${getSortIndicator('wearsSinceWash')} ${getFilterIcon('wearsSinceWash')}</div>
                             </th>
                             <th onclick="sortByColumn('timesWashed')" title="Times Washed">
-                                <div class="header-content">Times Washed ${getSortIndicator('timesWashed')}</div>
+                                <div class="header-content">Times Washed ${getSortIndicator('timesWashed')} ${getFilterIcon('timesWashed')}</div>
                             </th>
                             <th onclick="sortByColumn('lastWashed')" title="Last Washed Date">
-                                <div class="header-content">Last Washed ${getSortIndicator('lastWashed')}</div>
+                                <div class="header-content">Last Washed ${getSortIndicator('lastWashed')} ${getFilterIcon('lastWashed')}</div>
                             </th>
                             <th onclick="sortByColumn('lastWorn')" title="Last Worn Date">
-                                <div class="header-content">Last Worn ${getSortIndicator('lastWorn')}</div>
+                                <div class="header-content">Last Worn ${getSortIndicator('lastWorn')} ${getFilterIcon('lastWorn')}</div>
                             </th>
                             <th class="no-sort">Actions</th>
                         </tr>
