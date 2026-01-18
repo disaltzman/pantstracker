@@ -2202,28 +2202,36 @@
         document.getElementById('logWearForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
+            // Get pants to store snapshot values
+            const pantsId = parseInt(document.getElementById('logPants').value);
+            const pants = inventory.find(p => p.id === pantsId);
+            
+            if (!pants) {
+                alert('Error: Pants not found in inventory');
+                return;
+            }
+            
+            // Initialize wash fields if they don't exist (for older data)
+            if (pants.wearsSinceWash === undefined) pants.wearsSinceWash = 0;
+            if (pants.timesWashed === undefined) pants.timesWashed = 0;
+            
+            // Create log with snapshot values AFTER this wear
             const log = {
                 id: Date.now(),
                 date: document.getElementById('logDate').value,
-                pantsId: parseInt(document.getElementById('logPants').value),
+                pantsId: pantsId,
                 temperature: document.getElementById('logTemp').value || null,
-                notes: document.getElementById('logNotes').value
+                notes: document.getElementById('logNotes').value,
+                wearCount: pants.wearCount + 1,  // Snapshot of total wears after this wear
+                wearsSinceWash: pants.wearsSinceWash + 1  // Snapshot of wears since wash after this wear
             };
 
             wearLog.push(log);
             
             // Update wear count, wears since wash, and last worn date
-            const pants = inventory.find(p => p.id === log.pantsId);
-            if (pants) {
-                pants.wearCount++;
-                pants.lastWorn = log.date;
-                
-                // Initialize wash fields if they don't exist (for older data)
-                if (pants.wearsSinceWash === undefined) pants.wearsSinceWash = 0;
-                if (pants.timesWashed === undefined) pants.timesWashed = 0;
-                
-                pants.wearsSinceWash++;
-            }
+            pants.wearCount++;
+            pants.lastWorn = log.date;
+            pants.wearsSinceWash++;
 
             saveData();
             this.reset();
@@ -2255,13 +2263,17 @@
                 const pants = inventory.find(p => p.id === log.pantsId);
                 if (!pants) return;
                 
+                // Use snapshot values if available, otherwise fall back to current inventory values
+                const displayWearCount = log.wearCount !== undefined ? log.wearCount : pants.wearCount;
+                const displayWearsSinceWash = log.wearsSinceWash !== undefined ? log.wearsSinceWash : (pants.wearsSinceWash || 0);
+                
                 html += `
                     <div class="wear-log-entry">
                         <div>
                             <div class="date">${new Date(log.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
                             <div><strong>${pants.brand} ${pants.model}</strong> - ${pants.color} (${pants.style})</div>
                             <div style="color: #667eea; font-size: 0.9em; font-weight: 600; margin-top: 4px;">
-                                Total wears: ${pants.wearCount} • Wears since wash: ${pants.wearsSinceWash || 0}
+                                Total wears: ${displayWearCount} • Wears since wash: ${displayWearsSinceWash}
                             </div>
                             ${log.temperature ? `<div style="color: var(--text-secondary); font-size: 0.9em;">Temperature: ${log.temperature}°F</div>` : ''}
                             ${log.notes ? `<div style="color: var(--text-secondary); font-size: 0.9em; margin-top: 5px;">${log.notes}</div>` : ''}
