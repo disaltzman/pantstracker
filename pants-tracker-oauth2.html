@@ -1169,7 +1169,7 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="logTemp">Temperature (°F)</label>
+                    <label for="logTemp">High Temperature (°F)</label>
                     <div style="display: flex; gap: 10px;">
                         <input type="number" id="logTemp" placeholder="e.g., 72" style="flex: 1;">
                         <button type="button" onclick="fetchWeatherForLog()" class="btn-secondary" style="white-space: nowrap;">🌡️ Fetch Weather</button>
@@ -2077,7 +2077,7 @@
                 logWeatherInfo.innerHTML = '⏳ Fetching weather data...';
                 
                 const weatherResponse = await fetch(
-                    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m&temperature_unit=fahrenheit&forecast_days=1`
+                    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max&temperature_unit=fahrenheit&forecast_days=1`
                 );
                 
                 if (!weatherResponse.ok) {
@@ -2085,10 +2085,10 @@
                 }
                 
                 const weatherData = await weatherResponse.json();
-                const temp = weatherData.current.temperature_2m;
+                const highTemp = weatherData.daily.temperature_2m_max[0];
                 
-                document.getElementById('logTemp').value = Math.round(temp);
-                logWeatherInfo.innerHTML = `✅ Temperature set to ${Math.round(temp)}°F`;
+                document.getElementById('logTemp').value = Math.round(highTemp);
+                logWeatherInfo.innerHTML = `✅ High temperature set to ${Math.round(highTemp)}°F`;
                 
             } catch (error) {
                 let errorMessage = '';
@@ -2275,7 +2275,7 @@
                             <div style="color: #667eea; font-size: 0.9em; font-weight: 600; margin-top: 4px;">
                                 Total wears: ${displayWearCount} • Wears since wash: ${displayWearsSinceWash}
                             </div>
-                            ${log.temperature ? `<div style="color: var(--text-secondary); font-size: 0.9em;">Temperature: ${log.temperature}°F</div>` : ''}
+                            ${log.temperature ? `<div style="color: var(--text-secondary); font-size: 0.9em;">High: ${log.temperature}°F</div>` : ''}
                             ${log.notes ? `<div style="color: var(--text-secondary); font-size: 0.9em; margin-top: 5px;">${log.notes}</div>` : ''}
                         </div>
                         <button class="btn-danger" onclick="deleteLog(${log.id})">Delete</button>
