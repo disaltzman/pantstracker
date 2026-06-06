@@ -1082,10 +1082,9 @@
                             <option value="">Select style...</option>
                             <option value="Jeans">Jeans</option>
                             <option value="Chinos">Chinos</option>
-                            <option value="Carpenter">Carpenter</option>
-                            <option value="Fatigues">Fatigues</option>
+                            <option value="Work Pants">Work Pants</option>
                             <option value="Dress Pants">Dress Pants</option>
-                            <option value="Cargo">Cargo</option>
+                            <option value="Shorts">Shorts</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1140,6 +1139,24 @@
             </div>
             
             <div id="inventoryTable"></div>
+
+            <!-- Notes Modal -->
+            <div id="notesModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="notesModalTitle">Item Notes</h3>
+                        <button class="modal-close" onclick="closeNotesModal()">✕</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="notesModalText">Notes (e.g., colorway name, specific details)</label>
+                        <textarea id="notesModalText" rows="4" placeholder="Add notes like 'Indigo #3' or 'Summer colorway'"></textarea>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button onclick="saveNotesModal()" class="btn-primary" style="flex: 1;">Save Notes</button>
+                        <button onclick="closeNotesModal()" class="btn-secondary" style="flex: 1;">Cancel</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="log" class="tab-content">
@@ -1891,6 +1908,7 @@
                                 <button class="btn-secondary" onclick="markAsWashed(${pants.id})" title="Mark as Washed">🧼</button>
                                 <button class="btn-secondary" onclick="editPants(${pants.id})" title="Edit">✏️</button>
                                 <button class="btn-danger" onclick="deletePants(${pants.id})" title="Delete">🗑️</button>
+                                <button class="btn-secondary" onclick="openNotesModal(${pants.id})" title="View/Edit Notes" style="${pants.notes ? 'color: #f5576c;' : ''} ${pants.notes ? 'font-weight: bold;' : ''}">📝</button>
                             </div>
                         </td>
                     </tr>
@@ -1963,6 +1981,7 @@
                             <button class="btn-secondary" onclick="markAsWashed(${pants.id})">🧼 Washed</button>
                             <button class="btn-secondary" onclick="editPants(${pants.id})">✏️ Edit</button>
                             <button class="btn-danger" onclick="deletePants(${pants.id})">🗑️ Delete</button>
+                            <button class="btn-secondary" onclick="openNotesModal(${pants.id})" style="${pants.notes ? 'color: #f5576c; font-weight: bold;' : ''}">📝 Notes</button>
                         </div>
                     </div>
                 `;
@@ -2309,6 +2328,52 @@
                 renderInventoryTable(); // Update inventory to show decreased wear count
             }
         }
+
+        // Notes modal functions
+        let currentNotesEditingId = null;
+
+        function openNotesModal(pantsId) {
+            const pants = inventory.find(p => p.id === pantsId);
+            if (!pants) return;
+            
+            currentNotesEditingId = pantsId;
+            document.getElementById('notesModalTitle').textContent = `Notes: ${pants.brand} ${pants.model} - ${pants.color}`;
+            document.getElementById('notesModalText').value = pants.notes || '';
+            document.getElementById('notesModal').classList.add('active');
+            document.getElementById('notesModalText').focus();
+        }
+
+        function closeNotesModal() {
+            document.getElementById('notesModal').classList.remove('active');
+            currentNotesEditingId = null;
+        }
+
+        function saveNotesModal() {
+            if (currentNotesEditingId === null) return;
+            
+            const pants = inventory.find(p => p.id === currentNotesEditingId);
+            if (!pants) return;
+            
+            pants.notes = document.getElementById('notesModalText').value.trim();
+            saveData();
+            renderInventoryTable();
+            closeNotesModal();
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('notesModal');
+            if (e.target === modal) {
+                closeNotesModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeNotesModal();
+            }
+        });
 
         // Get recommendation
         function getRecommendation() {
