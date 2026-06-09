@@ -637,8 +637,8 @@
             background: var(--section-bg);
             border: 2px solid var(--border-color);
             border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
+            padding: 10px;
+            margin-bottom: 6px;
             transition: all 0.3s;
         }
 
@@ -651,8 +651,8 @@
             display: flex;
             justify-content: space-between;
             align-items: start;
-            margin-bottom: 12px;
-            padding-bottom: 12px;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
             border-bottom: 1px solid var(--border-color);
         }
 
@@ -661,22 +661,22 @@
         }
 
         .inventory-card-brand {
-            font-size: 1.1em;
+            font-size: 0.95em;
             font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .inventory-card-model {
-            font-size: 0.95em;
+            font-size: 0.85em;
             color: var(--text-secondary);
         }
 
         .inventory-card-color {
             display: inline-block;
-            padding: 4px 12px;
-            border-radius: 6px;
-            font-size: 0.85em;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
             font-weight: 600;
             border: 1px solid rgba(0,0,0,0.1);
         }
@@ -684,19 +684,19 @@
         .inventory-card-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px 16px;
-            margin-bottom: 12px;
+            gap: 4px 8px;
+            margin-bottom: 8px;
         }
 
         .inventory-card-item {
-            font-size: 0.85em;
+            font-size: 0.75em;
         }
 
         .inventory-card-label {
             color: var(--text-secondary);
             font-weight: 600;
             display: block;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
         }
 
         .inventory-card-value {
@@ -706,15 +706,15 @@
 
         .inventory-card-actions {
             display: flex;
-            gap: 8px;
+            gap: 4px;
             flex-wrap: wrap;
         }
 
         .inventory-card-actions button {
             flex: 1;
-            min-width: 120px;
-            font-size: 0.85em;
-            padding: 8px 12px;
+            min-width: 70px;
+            font-size: 0.75em;
+            padding: 4px 6px;
         }
 
         /* Striped List Items (Mobile) */
@@ -2040,7 +2040,7 @@
                     : '-';
                 
                 cardsHtml += `
-                    <div class="inventory-list-item" style="background-color: ${index % 2 === 0 ? 'transparent' : 'rgba(102, 126, 234, 0.05)';}">
+                    <div class="inventory-list-item" style="background-color: ${index % 2 === 0 ? 'transparent' : 'rgba(102, 126, 234, 0.05)'}">
                         <div class="list-item-main">
                             <div class="list-item-brand-model">
                                 <span class="list-brand">${pants.brand}</span>
@@ -2597,15 +2597,17 @@
                 
                 ${alternatives.length > 0 ? `
                     <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-primary);">Alternative Options</h3>
-                    ${alternatives.map(alt => `
+                    ${alternatives.map(alt => {
+                        const daysSinceWorn = alt.pants.lastWorn ? Math.floor((Date.now() - new Date(alt.pants.lastWorn)) / (1000 * 60 * 60 * 24)) : null;
+                        return `
                         <div style="background: var(--section-bg); padding: 15px; border-radius: 8px; margin-bottom: 10px;">
                             <strong>${alt.pants.brand} ${alt.pants.model}</strong> - ${alt.pants.color} (${alt.pants.style})
                             <div style="color: var(--text-secondary); font-size: 0.9em; margin-top: 5px;">
                                 Worn ${alt.pants.wearCount} times | ${alt.pants.fabricType} | ${alt.pants.fabricWeight}
-                                ${alt.pants.lastWorn ? ` | Last worn ${Math.floor((Date.now() - new Date(alt.pants.lastWorn)) / (1000 * 60 * 60 * 24))} days ago` : ' | Never worn'}
+                                ${daysSinceWorn !== null ? ` | Last worn ${daysSinceWorn} days ago` : ' | Never worn'}
                             </div>
                         </div>
-                    `).join('')}
+                    `;}).join('')}
                 ` : ''}
             `;
         }
@@ -2680,7 +2682,8 @@
                 ${needsWashing.length > 0 ? `
                     <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-primary);">🧼 Need Washing (10+ wears without wash)</h3>
                     <div style="background: var(--section-bg); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 2px solid #ff5252;">
-                        ${needsWashing.map(p => `
+                        ${needsWashing.map(p => {
+                            return `
                             <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border-color);">
                                 <div>
                                     <strong>${p.brand} ${p.model}</strong> - ${p.color}
@@ -2690,7 +2693,7 @@
                                 </div>
                                 <button class="btn-secondary" onclick="markAsWashed(${p.id})" style="font-size: 0.85em;">🧼 Mark as Washed</button>
                             </div>
-                        `).join('')}
+                        `;}).join('')}
                     </div>
                 ` : ''}
 
@@ -2728,7 +2731,8 @@
 
                 <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-primary);">Style Breakdown</h3>
                 <div style="background: var(--section-bg); padding: 20px; border-radius: 12px;">
-                    ${Object.entries(styleCount).map(([style, count]) => `
+                    ${Object.entries(styleCount).map(([style, count]) => {
+                        return `
                         <div style="margin-bottom: 10px;">
                             <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                                 <span style="color: var(--text-primary);"><strong>${style}</strong></span>
@@ -2738,12 +2742,13 @@
                                 <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100%; width: ${(count / totalPants) * 100}%;"></div>
                             </div>
                         </div>
-                    `).join('')}
+                    `;}).join('')}
                 </div>
 
                 <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-primary);">Fabric Weight Distribution</h3>
                 <div style="background: var(--section-bg); padding: 20px; border-radius: 12px;">
-                    ${Object.entries(weightCount).map(([weight, count]) => `
+                    ${Object.entries(weightCount).map(([weight, count]) => {
+                        return `
                         <div style="margin-bottom: 10px;">
                             <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                                 <span style="color: var(--text-primary);"><strong>${weight}</strong></span>
@@ -2753,7 +2758,7 @@
                                 <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); height: 100%; width: ${(count / totalPants) * 100}%;"></div>
                             </div>
                         </div>
-                    `).join('')}
+                    `;}).join('')}
                 </div>
             `;
         }
