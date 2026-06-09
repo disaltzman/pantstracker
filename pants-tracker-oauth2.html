@@ -717,6 +717,118 @@
             padding: 8px 12px;
         }
 
+        /* Striped List Items (Mobile) */
+        .inventory-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 12px;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+        }
+
+        .inventory-list-item:active {
+            background-color: rgba(102, 126, 234, 0.1) !important;
+        }
+
+        .list-item-main {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .list-item-brand-model {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .list-brand {
+            font-weight: 700;
+            font-size: 0.95em;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .list-model {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .list-color-chip {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: 600;
+            border: 1px solid rgba(0,0,0,0.1);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .list-item-stats {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8em;
+            flex-shrink: 0;
+        }
+
+        .list-wears {
+            color: #667eea;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .list-weight {
+            color: var(--text-secondary);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .list-notes-indicator {
+            font-size: 1em;
+            flex-shrink: 0;
+        }
+
+        .list-item-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+
+        .btn-action-small {
+            background: none;
+            border: none;
+            padding: 4px 6px;
+            cursor: pointer;
+            font-size: 1.1em;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .btn-action-small:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.15);
+        }
+
+        .btn-action-small:active {
+            transform: scale(0.95);
+        }
+
         /* Mobile: Hide table, show cards */
         @media (max-width: 768px) {
             .inventory-table-wrapper {
@@ -1920,7 +2032,7 @@
             // Build mobile card view
             let cardsHtml = '<div class="inventory-cards">';
             
-            filteredInventory.forEach(pants => {
+            filteredInventory.forEach((pants, index) => {
                 const colorHex = colorMap[pants.color] || '#cccccc';
                 const textColor = ['White', 'Cream', 'Light Gray', 'Beige', 'Tan', 'Khaki', 'Light Blue'].includes(pants.color) ? '#000' : '#fff';
                 const lastWashed = pants.washHistory && pants.washHistory.length > 0 
@@ -1928,60 +2040,26 @@
                     : '-';
                 
                 cardsHtml += `
-                    <div class="inventory-card">
-                        <div class="inventory-card-header">
-                            <div class="inventory-card-title">
-                                <div class="inventory-card-brand">${pants.brand}</div>
-                                <div class="inventory-card-model">${pants.model}</div>
+                    <div class="inventory-list-item" style="background-color: ${index % 2 === 0 ? 'transparent' : 'rgba(102, 126, 234, 0.05)';}">
+                        <div class="list-item-main">
+                            <div class="list-item-brand-model">
+                                <span class="list-brand">${pants.brand}</span>
+                                <span class="list-model">${pants.model}</span>
                             </div>
-                            <span class="inventory-card-color" style="background: ${colorHex}; color: ${textColor};">
+                            <span class="list-color-chip" style="background: ${colorHex}; color: ${textColor};">
                                 ${pants.color}
                             </span>
-                        </div>
-                        
-                        <div class="inventory-card-grid">
-                            <div class="inventory-card-item">
-                                <span class="inventory-card-label">Style</span>
-                                <span class="inventory-card-value">${pants.style}</span>
-                            </div>
-                            <div class="inventory-card-item">
-                                <span class="inventory-card-label">Size</span>
-                                <span class="inventory-card-value">${pants.size}</span>
-                            </div>
-                            <div class="inventory-card-item">
-                                <span class="inventory-card-label">Fabric</span>
-                                <span class="inventory-card-value">${pants.fabricType}</span>
-                            </div>
-                            <div class="inventory-card-item">
-                                <span class="inventory-card-label">Weight</span>
-                                <span class="inventory-card-value">${pants.fabricWeight}</span>
-                            </div>
-                            <div class="inventory-card-item">
-                                <span class="inventory-card-label">Total Wears</span>
-                                <span class="inventory-card-value" style="color: #667eea; font-weight: 700;">${pants.wearCount}</span>
-                            </div>
-                            <div class="inventory-card-item">
-                                <span class="inventory-card-label">Since Wash</span>
-                                <span class="inventory-card-value" style="color: #667eea; font-weight: 700;">${pants.wearsSinceWash}</span>
-                            </div>
-                            <div class="inventory-card-item">
-                                <span class="inventory-card-label">Times Washed</span>
-                                <span class="inventory-card-value">${pants.timesWashed > 0 
-                                    ? `<span style="cursor: pointer; color: #667eea; text-decoration: underline;" onclick="viewWashHistory(${pants.id})">${pants.timesWashed}</span>`
-                                    : pants.timesWashed
-                                }</span>
-                            </div>
-                            <div class="inventory-card-item">
-                                <span class="inventory-card-label">Last Worn</span>
-                                <span class="inventory-card-value">${pants.lastWorn ? new Date(pants.lastWorn + 'T00:00:00').toLocaleDateString() : '-'}</span>
+                            <div class="list-item-stats">
+                                <span class="list-wears"><strong>${pants.wearCount}</strong> wears</span>
+                                <span class="list-weight">${pants.fabricWeight === 'Lightweight' ? 'Light' : pants.fabricWeight === 'Heavyweight' ? 'Heavy' : 'Med'}</span>
+                                ${pants.notes ? '<span class="list-notes-indicator" title="Has notes">📝</span>' : ''}
                             </div>
                         </div>
-                        
-                        <div class="inventory-card-actions">
-                            <button class="btn-secondary" onclick="markAsWashed(${pants.id})">🧼 Washed</button>
-                            <button class="btn-secondary" onclick="editPants(${pants.id})">✏️ Edit</button>
-                            <button class="btn-danger" onclick="deletePants(${pants.id})">🗑️ Delete</button>
-                            <button class="btn-secondary" onclick="openNotesModal(${pants.id})" style="${pants.notes ? 'color: #f5576c; font-weight: bold;' : ''}">📝 Notes</button>
+                        <div class="list-item-actions">
+                            <button class="btn-action-small" onclick="markAsWashed(${pants.id})" title="Mark as Washed">🧼</button>
+                            <button class="btn-action-small" onclick="editPants(${pants.id})" title="Edit">✏️</button>
+                            <button class="btn-action-small" onclick="deletePants(${pants.id})" title="Delete">🗑️</button>
+                            <button class="btn-action-small" onclick="openNotesModal(${pants.id})" title="View/Edit Notes" style="${pants.notes ? 'color: #f5576c; font-weight: bold;' : ''}">📝</button>
                         </div>
                     </div>
                 `;
