@@ -717,47 +717,31 @@
             padding: 4px 6px;
         }
 
-        /* Striped List Items (Mobile) */
+        /* Striped List Items (Mobile) - Compact, tap to expand actions */
         .inventory-list-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 12px;
             border-bottom: 1px solid var(--border-color);
             transition: background-color 0.2s;
         }
 
-        .inventory-list-item:active {
-            background-color: rgba(102, 126, 234, 0.1) !important;
-        }
-
-        .list-item-main {
+        .list-item-summary {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            padding: 10px 8px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: rgba(102, 126, 234, 0.15);
+        }
+
+        .list-item-summary:active {
+            background-color: rgba(102, 126, 234, 0.1);
+        }
+
+        .list-brand-model {
             flex: 1;
             min-width: 0;
-        }
-
-        .list-item-brand-model {
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            flex: 1;
-        }
-
-        .list-brand {
-            font-weight: 700;
-            font-size: 0.95em;
-            color: var(--text-primary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .list-model {
+            font-weight: 600;
             font-size: 0.85em;
-            color: var(--text-secondary);
+            color: var(--text-primary);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -765,64 +749,66 @@
 
         .list-color-chip {
             display: inline-block;
-            padding: 4px 8px;
+            flex-shrink: 0;
+            padding: 3px 7px;
             border-radius: 4px;
-            font-size: 0.75em;
+            font-size: 0.7em;
             font-weight: 600;
             border: 1px solid rgba(0,0,0,0.1);
             white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .list-item-stats {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.8em;
-            flex-shrink: 0;
+            max-width: 90px;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .list-wears {
+            flex-shrink: 0;
+            font-size: 0.78em;
+            font-weight: 700;
             color: #667eea;
-            font-weight: 600;
             white-space: nowrap;
         }
 
         .list-weight {
+            flex-shrink: 0;
+            font-size: 0.78em;
             color: var(--text-secondary);
             font-weight: 500;
             white-space: nowrap;
-        }
-
-        .list-notes-indicator {
-            font-size: 1em;
-            flex-shrink: 0;
+            min-width: 30px;
+            text-align: right;
         }
 
         .list-item-actions {
+            display: none;
+            gap: 6px;
+            padding: 8px;
+            justify-content: flex-start;
+            background: rgba(102, 126, 234, 0.04);
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .list-item-actions.show {
             display: flex;
-            gap: 4px;
-            flex-shrink: 0;
-            margin-left: 8px;
         }
 
         .btn-action-small {
             background: none;
-            border: none;
-            padding: 4px 6px;
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
             cursor: pointer;
             font-size: 1.1em;
             color: var(--text-primary);
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 4px;
+            border-radius: 6px;
             transition: all 0.2s;
+            flex: 1;
         }
 
         .btn-action-small:hover {
             background: rgba(102, 126, 234, 0.1);
-            transform: scale(1.15);
         }
 
         .btn-action-small:active {
@@ -837,67 +823,6 @@
 
             .inventory-cards {
                 display: block;
-            }
-
-            /* Optimize striped list for mobile - stack vertically */
-            .inventory-list-item {
-                display: flex;
-                flex-direction: column;
-                align-items: flex-start;
-                padding: 10px 8px;
-                gap: 8px;
-            }
-
-            .list-item-main {
-                display: flex;
-                flex-direction: column;
-                width: 100%;
-                gap: 6px;
-                flex: 1;
-            }
-
-            .list-item-brand-model {
-                display: flex;
-                flex-direction: row;
-                gap: 8px;
-                width: 100%;
-                min-width: 0;
-            }
-
-            .list-brand {
-                font-size: 0.9em;
-                flex: 1;
-                min-width: 0;
-            }
-
-            .list-model {
-                font-size: 0.8em;
-                flex: 1;
-                min-width: 0;
-            }
-
-            .list-color-chip {
-                font-size: 0.7em;
-                padding: 3px 6px;
-            }
-
-            .list-item-stats {
-                width: 100%;
-                justify-content: flex-start;
-                gap: 12px;
-                font-size: 0.75em;
-                flex-wrap: wrap;
-            }
-
-            .list-item-actions {
-                width: 100%;
-                justify-content: flex-start;
-                gap: 6px;
-            }
-
-            .btn-action-small {
-                font-size: 1em;
-                padding: 6px 8px;
             }
 
             /* Make form elements stack better on mobile */
@@ -1255,7 +1180,6 @@
                             <option value="">Select style...</option>
                             <option value="Jeans">Jeans</option>
                             <option value="Chinos">Chinos</option>
-                            <option value="Fatigues">Fatigues</option>
                             <option value="Work Pants">Work Pants</option>
                             <option value="Dress Pants">Dress Pants</option>
                             <option value="Shorts">Shorts</option>
@@ -2103,25 +2027,17 @@
                 
                 cardsHtml += `
                     <div class="inventory-list-item" style="background-color: ${index % 2 === 0 ? 'transparent' : 'rgba(102, 126, 234, 0.05)'}">
-                        <div class="list-item-main">
-                            <div class="list-item-brand-model">
-                                <span class="list-brand">${pants.brand}</span>
-                                <span class="list-model">${pants.model}</span>
-                            </div>
-                            <span class="list-color-chip" style="background: ${colorHex}; color: ${textColor};">
-                                ${pants.color}
-                            </span>
-                            <div class="list-item-stats">
-                                <span class="list-wears"><strong>${pants.wearCount}</strong> wears</span>
-                                <span class="list-weight">${pants.fabricWeight === 'Lightweight' ? 'Light' : pants.fabricWeight === 'Heavyweight' ? 'Heavy' : 'Med'}</span>
-                                ${pants.notes ? '<span class="list-notes-indicator" title="Has notes">📝</span>' : ''}
-                            </div>
+                        <div class="list-item-summary" data-pants-id="${pants.id}">
+                            <span class="list-brand-model">${pants.brand} ${pants.model}</span>
+                            <span class="list-color-chip" style="background: ${colorHex}; color: ${textColor};">${pants.color}</span>
+                            <span class="list-wears">${pants.wearCount}w</span>
+                            <span class="list-weight">${pants.fabricWeight === 'Lightweight' ? 'Light' : pants.fabricWeight === 'Heavyweight' ? 'Heavy' : 'Med'}</span>
                         </div>
-                        <div class="list-item-actions">
-                            <button class="btn-action-small" onclick="markAsWashed(${pants.id})" title="Mark as Washed">🧼</button>
-                            <button class="btn-action-small" onclick="editPants(${pants.id})" title="Edit">✏️</button>
-                            <button class="btn-action-small" onclick="deletePants(${pants.id})" title="Delete">🗑️</button>
-                            <button class="btn-action-small" onclick="openNotesModal(${pants.id})" title="View/Edit Notes" style="${pants.notes ? 'color: #f5576c; font-weight: bold;' : ''}">📝</button>
+                        <div class="list-item-actions" id="actions-${pants.id}">
+                            <button class="btn-action-small" onclick="event.stopPropagation(); markAsWashed(${pants.id})" title="Mark as Washed">🧼</button>
+                            <button class="btn-action-small" onclick="event.stopPropagation(); editPants(${pants.id})" title="Edit">✏️</button>
+                            <button class="btn-action-small" onclick="event.stopPropagation(); deletePants(${pants.id})" title="Delete">🗑️</button>
+                            <button class="btn-action-small" onclick="event.stopPropagation(); openNotesModal(${pants.id})" title="View/Edit Notes" style="${pants.notes ? 'color: #f5576c; font-weight: bold;' : ''}">📝</button>
                         </div>
                     </div>
                 `;
@@ -2512,6 +2428,36 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeNotesModal();
+            }
+        });
+
+        // Mobile list: tap a row's summary to reveal action buttons (accordion style)
+        document.addEventListener('click', function(e) {
+            const summary = e.target.closest('.list-item-summary');
+            
+            // If click was inside the actions row (a button), let the button's own handler run
+            if (e.target.closest('.list-item-actions')) {
+                return;
+            }
+            
+            if (summary) {
+                const pantsId = summary.dataset.pantsId;
+                const actions = document.getElementById('actions-' + pantsId);
+                if (!actions) return;
+                
+                const isOpen = actions.classList.contains('show');
+                
+                // Close any other open action rows first
+                document.querySelectorAll('.list-item-actions.show').forEach(el => {
+                    if (el !== actions) el.classList.remove('show');
+                });
+                
+                actions.classList.toggle('show', !isOpen);
+            } else {
+                // Tapped outside any row - close all open action rows
+                document.querySelectorAll('.list-item-actions.show').forEach(el => {
+                    el.classList.remove('show');
+                });
             }
         });
 
