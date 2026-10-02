@@ -1119,6 +1119,7 @@
             <button class="tab" onclick="switchTab('log')">Daily Log</button>
             <button class="tab" onclick="switchTab('recommendations')">Recommendations</button>
             <button class="tab" onclick="switchTab('stats')">Statistics</button>
+            <button class="tab" onclick="switchTab('archived')">Archived</button>
             <button class="tab" onclick="switchTab('settings')">Settings</button>
         </div>
 
@@ -1354,6 +1355,12 @@
             <div id="statsContent"></div>
         </div>
 
+        <div id="archived" class="tab-content">
+            <h2 style="margin-bottom: 10px; color: var(--text-primary);">Archived Pants</h2>
+            <p style="margin-bottom: 20px; color: var(--text-secondary);">Items archived from your main inventory. Restore them anytime, or delete permanently.</p>
+            <div id="archivedList"></div>
+        </div>
+
         <div id="settings" class="tab-content">
             <h2 style="margin-bottom: 20px; color: var(--text-primary);">Settings</h2>
             
@@ -1535,7 +1542,7 @@
         // Get unique values for a column
         function getUniqueValues(column) {
             const values = new Set();
-            inventory.forEach(pants => {
+            inventory.filter(p => !p.archived).forEach(pants => {
                 let value = pants[column];
                 
                 // Special handling for lastWashed
@@ -1756,6 +1763,7 @@
             if (tabName === 'inventory') renderInventoryTable();
             if (tabName === 'log') renderWearHistory();
             if (tabName === 'stats') renderStatistics();
+            if (tabName === 'archived') renderArchivedList();
             if (tabName === 'log') updateLogPantsDropdown();
         }
 
@@ -1778,7 +1786,8 @@
                 lastWorn: null,
                 timesWashed: 0,
                 wearsSinceWash: 0,
-                washHistory: []
+                washHistory: [],
+                archived: false
             };
 
             inventory.push(pants);
@@ -1829,8 +1838,20 @@
                 return;
             }
 
+            const activeInventory = inventory.filter(p => !p.archived);
+
+            if (activeInventory.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p style="font-size: 1.2em;">All your pants are archived.</p>
+                        <p>Visit the Archived tab to restore an item.</p>
+                    </div>
+                `;
+                return;
+            }
+
             // Apply column filters first
-            let filteredInventory = [...inventory];
+            let filteredInventory = [...activeInventory];
             
             // Apply each column filter
             Object.keys(columnFilters).forEach(column => {
@@ -2007,6 +2028,7 @@
                                 <button class="btn-secondary" onclick="editPants(${pants.id})" title="Edit">✏️</button>
                                 <button class="btn-danger" onclick="deletePants(${pants.id})" title="Delete">🗑️</button>
                                 <button class="btn-secondary" onclick="openNotesModal(${pants.id})" title="View/Edit Notes" style="${pants.notes ? 'color: #f5576c;' : ''} ${pants.notes ? 'font-weight: bold;' : ''}">📝</button>
+                                <button class="btn-secondary" onclick="archivePants(${pants.id})" title="Archive">📦</button>
                             </div>
                         </td>
                     </tr>
@@ -2038,6 +2060,7 @@
                             <button class="btn-action-small" onclick="event.stopPropagation(); editPants(${pants.id})" title="Edit">✏️</button>
                             <button class="btn-action-small" onclick="event.stopPropagation(); deletePants(${pants.id})" title="Delete">🗑️</button>
                             <button class="btn-action-small" onclick="event.stopPropagation(); openNotesModal(${pants.id})" title="View/Edit Notes" style="${pants.notes ? 'color: #f5576c; font-weight: bold;' : ''}">📝</button>
+                            <button class="btn-action-small" onclick="event.stopPropagation(); archivePants(${pants.id})" title="Archive">📦</button>
                         </div>
                     </div>
                 `;
@@ -2077,6 +2100,70 @@
                 saveData();
                 renderInventoryTable();
             }
+        }
+
+        // Archive pants - hide from main inventory, keep data intact
+        function archivePants(id) {
+            const pants = inventory.find(p => p.id === id);
+            if (!pants) return;
+            
+            if (confirm(`Archive "${pants.brand} ${pants.model}"?\n\nIt will be hidden from your main inventory but all its data and wear history stays intact. You can restore it anytime from the Archived tab.`)) {
+                pants.archived = true;
+                saveData();
+                renderInventoryTable();
+            }
+        }
+
+        // Unarchive pants - restore to main inventory
+        function unarchivePants(id) {
+            const pants = inventory.find(p => p.id === id);
+            if (!pants) return;
+            
+            pants.archived = false;
+            saveData();
+            renderInventoryTable();
+            renderArchivedList();
+        }
+
+        // Render the Archived tab list
+        function renderArchivedList() {
+            const container = document.getElementById('archivedList');
+            if (!container) return;
+            
+            const archived = inventory.filter(p => p.archived);
+            
+            if (archived.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>No archived pants.</p>
+                        <p>Archived items will show up here.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            archived.forEach((pants, index) => {
+                const colorHex = colorMap[pants.color] || '#cccccc';
+                const textColor = ['White', 'Cream', 'Light Gray', 'Beige', 'Tan', 'Khaki', 'Light Blue'].includes(pants.color) ? '#000' : '#fff';
+                
+                html += `
+                    <div class="inventory-list-item" style="background-color: ${index % 2 === 0 ? 'transparent' : 'rgba(102, 126, 234, 0.05)'}">
+                        <div class="list-item-summary" data-pants-id="${pants.id}">
+                            <span class="list-brand-model">${pants.brand} ${pants.model}</span>
+                            <span class="list-color-chip" style="background: ${colorHex}; color: ${textColor};">${pants.color}</span>
+                            <span class="list-wears">${pants.wearCount}w</span>
+                            <span class="list-weight">${pants.fabricWeight === 'Lightweight' ? 'Light' : pants.fabricWeight === 'Heavyweight' ? 'Heavy' : 'Med'}</span>
+                        </div>
+                        <div class="list-item-actions" id="actions-${pants.id}">
+                            <button class="btn-action-small" onclick="event.stopPropagation(); unarchivePants(${pants.id})" title="Restore to inventory">♻️ Restore</button>
+                            <button class="btn-action-small" onclick="event.stopPropagation(); deletePants(${pants.id})" title="Delete permanently">🗑️ Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
         }
 
         // Delete pants
@@ -2221,8 +2308,9 @@
             const searchTerm = document.getElementById('logPantsSearch').value.toLowerCase();
             const dropdown = document.getElementById('pantsDropdown');
             
-            // Filter inventory based on search term
+            // Filter inventory based on search term (exclude archived - you can't log wears for them)
             const filtered = inventory.filter(pants => {
+                if (pants.archived) return false;
                 const searchText = `${pants.brand} ${pants.model} ${pants.color} ${pants.style}`.toLowerCase();
                 return searchText.includes(searchTerm);
             });
@@ -2484,8 +2572,8 @@
             const denimPreference = document.getElementById('denimPreference').value;
             const fabricWeightPref = document.getElementById('fabricWeightPreference').value;
 
-            // Start with all inventory
-            let candidates = [...inventory];
+            // Start with all non-archived inventory
+            let candidates = inventory.filter(p => !p.archived);
             
             // Filter by fabric weight if specified
             if (fabricWeightPref !== 'any') {
@@ -2624,7 +2712,9 @@
         function renderStatistics() {
             const container = document.getElementById('statsContent');
             
-            if (inventory.length === 0) {
+            const inv = inventory.filter(p => !p.archived);
+            
+            if (inv.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
                         <p>Add some pants to see statistics!</p>
@@ -2633,29 +2723,29 @@
                 return;
             }
 
-            const totalPants = inventory.length;
-            const totalWears = inventory.reduce((sum, p) => sum + p.wearCount, 0);
+            const totalPants = inv.length;
+            const totalWears = inv.reduce((sum, p) => sum + p.wearCount, 0);
             const avgWears = totalWears / totalPants;
-            const totalWashes = inventory.reduce((sum, p) => sum + (p.timesWashed || 0), 0);
+            const totalWashes = inv.reduce((sum, p) => sum + (p.timesWashed || 0), 0);
             const avgWashes = totalWashes / totalPants;
             
             // Find pants that need washing (10+ wears since wash)
-            const needsWashing = inventory.filter(p => (p.wearsSinceWash || 0) >= 10);
+            const needsWashing = inv.filter(p => (p.wearsSinceWash || 0) >= 10);
             
-            const mostWorn = [...inventory].sort((a, b) => b.wearCount - a.wearCount)[0];
-            const leastWorn = [...inventory].sort((a, b) => a.wearCount - b.wearCount)[0];
-            const mostWashed = [...inventory].sort((a, b) => (b.timesWashed || 0) - (a.timesWashed || 0))[0];
-            const needsWashMost = [...inventory].sort((a, b) => (b.wearsSinceWash || 0) - (a.wearsSinceWash || 0))[0];
+            const mostWorn = [...inv].sort((a, b) => b.wearCount - a.wearCount)[0];
+            const leastWorn = [...inv].sort((a, b) => a.wearCount - b.wearCount)[0];
+            const mostWashed = [...inv].sort((a, b) => (b.timesWashed || 0) - (a.timesWashed || 0))[0];
+            const needsWashMost = [...inv].sort((a, b) => (b.wearsSinceWash || 0) - (a.wearsSinceWash || 0))[0];
 
             // Style breakdown
             const styleCount = {};
-            inventory.forEach(p => {
+            inv.forEach(p => {
                 styleCount[p.style] = (styleCount[p.style] || 0) + 1;
             });
 
             // Weight breakdown
             const weightCount = {};
-            inventory.forEach(p => {
+            inv.forEach(p => {
                 weightCount[p.fabricWeight] = (weightCount[p.fabricWeight] || 0) + 1;
             });
 
@@ -3198,7 +3288,13 @@
                     initialLoadComplete = true;
                     updateSyncStatus('synced', 'Ready');
                 } else {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    let errorDetail = '';
+                    try {
+                        errorDetail = await response.text();
+                    } catch (e) {
+                        // ignore
+                    }
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}${errorDetail ? ' - ' + errorDetail : ''}`);
                 }
             } catch (error) {
                 console.error('Error loading from Dropbox:', error);
