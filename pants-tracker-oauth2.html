@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pants Inventory Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,55 +15,108 @@
         }
 
         :root {
-            --bg-gradient-start: #667eea;
-            --bg-gradient-end: #764ba2;
-            --page-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --container-bg: white;
-            --text-primary: #333;
-            --text-secondary: #666;
-            --text-inverse: white;
-            --border-color: #ddd;
-            --input-bg: white;
-            --input-border: #ddd;
-            --tab-bg: #f5f5f5;
-            --tab-hover: #e8e8e8;
-            --section-bg: #f8f9fa;
-            --table-hover: #f8f9fa;
+            /* Material Design color roles - Indigo primary / Pink accent */
+            --md-primary: #3F51B5;
+            --md-primary-rgb: 63, 81, 181;
+            --md-primary-dark: #303F9F;
+            --md-primary-light: #C5CAE9;
+            --md-on-primary: #FFFFFF;
+            --md-secondary: #E91E63;
+            --md-on-secondary: #FFFFFF;
+
+            --bg-gradient-start: var(--md-primary);
+            --bg-gradient-end: var(--md-primary-dark);
+            --page-bg: #EDEFF5;
+            --container-bg: #FFFFFF;
+            --text-primary: rgba(0,0,0,0.87);
+            --text-secondary: rgba(0,0,0,0.6);
+            --text-inverse: #FFFFFF;
+            --border-color: rgba(0,0,0,0.12);
+            --input-bg: #FFFFFF;
+            --input-border: rgba(0,0,0,0.38);
+            --tab-bg: #FFFFFF;
+            --tab-hover: rgba(63,81,181,0.06);
+            --section-bg: #F5F6FA;
+            --table-hover: rgba(63,81,181,0.04);
             --shadow-color: rgba(0,0,0,0.3);
+
+            /* Material elevation shadows (dp1 / dp2 / dp4 / dp8 / dp16) */
+            --elevation-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            --elevation-2: 0 3px 6px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.12);
+            --elevation-4: 0 10px 20px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.10);
+            --elevation-8: 0 14px 28px rgba(0,0,0,0.18), 0 10px 10px rgba(0,0,0,0.12);
+            --elevation-16: 0 24px 38px rgba(0,0,0,0.20), 0 9px 46px rgba(0,0,0,0.12);
+            --md-radius: 8px;
+
+            /* Tonal containers for stat highlight cards */
+            --tonal-green-bg: #E8F5E9;
+            --tonal-green-text: #2E7D32;
+            --tonal-orange-bg: #FFF3E0;
+            --tonal-orange-text: #E65100;
+            --tonal-blue-bg: #E3F2FD;
+            --tonal-blue-text: #1565C0;
+            --tonal-pink-bg: #FCE4EC;
+            --tonal-pink-text: #C2185B;
+            --tonal-red-border: #EF5350;
         }
 
         [data-theme="dark"] {
-            --bg-gradient-start: #1a1a2e;
-            --bg-gradient-end: #16213e;
-            --page-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            --container-bg: #0f3460;
-            --text-primary: #e8e8e8;
-            --text-secondary: #b8b8b8;
-            --text-inverse: #e8e8e8;
-            --border-color: #2a4a6a;
-            --input-bg: #1a2332;
-            --input-border: #2a4a6a;
-            --tab-bg: #1a2332;
-            --tab-hover: #253447;
-            --section-bg: #1a2332;
-            --table-hover: #1e3a52;
+            --md-primary: #7986CB;
+            --md-primary-rgb: 121, 134, 203;
+            --md-primary-dark: #5C6BC0;
+            --md-primary-light: #3F51B5;
+            --md-on-primary: #000000;
+            --md-secondary: #F48FB1;
+            --md-on-secondary: #000000;
+
+            --bg-gradient-start: var(--md-primary-dark);
+            --bg-gradient-end: #1A1F38;
+            --page-bg: #121212;
+            --container-bg: #1E1E1E;
+            --text-primary: rgba(255,255,255,0.92);
+            --text-secondary: rgba(255,255,255,0.65);
+            --text-inverse: #FFFFFF;
+            --border-color: rgba(255,255,255,0.12);
+            --input-bg: #2A2A2A;
+            --input-border: rgba(255,255,255,0.38);
+            --tab-bg: #1E1E1E;
+            --tab-hover: rgba(121,134,203,0.12);
+            --section-bg: #252525;
+            --table-hover: rgba(121,134,203,0.08);
             --shadow-color: rgba(0,0,0,0.6);
+
+            --elevation-1: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.5);
+            --elevation-2: 0 3px 6px rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.4);
+            --elevation-4: 0 10px 20px rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.35);
+            --elevation-8: 0 14px 28px rgba(0,0,0,0.5), 0 10px 10px rgba(0,0,0,0.4);
+            --elevation-16: 0 24px 38px rgba(0,0,0,0.55), 0 9px 46px rgba(0,0,0,0.4);
+
+            --tonal-green-bg: #1B3A22;
+            --tonal-green-text: #81C784;
+            --tonal-orange-bg: #3D2B12;
+            --tonal-orange-text: #FFB74D;
+            --tonal-blue-bg: #122D44;
+            --tonal-blue-text: #64B5F6;
+            --tonal-pink-bg: #3A1726;
+            --tonal-pink-text: #F06292;
+            --tonal-red-border: #E57373;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: var(--page-bg);
             min-height: 100vh;
             padding: 20px;
             transition: background 0.3s ease;
+            letter-spacing: 0.01em;
         }
 
         .container {
             max-width: 98%;
             margin: 0 auto;
             background: var(--container-bg);
-            border-radius: 16px;
-            box-shadow: 0 20px 60px var(--shadow-color);
+            border-radius: var(--md-radius);
+            box-shadow: var(--elevation-4);
             overflow: hidden;
             transition: background 0.3s ease, box-shadow 0.3s ease;
         }
@@ -73,38 +129,42 @@
         }
 
         header {
-            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
-            color: white;
+            background: var(--bg-gradient-start);
+            color: #FFFFFF;
             padding: 30px;
             padding-bottom: 80px;
             text-align: center;
             position: relative;
             min-height: 200px;
+            box-shadow: var(--elevation-4);
         }
 
         header h1 {
-            font-size: 2.5em;
+            font-size: 2.2em;
+            font-weight: 500;
             margin-bottom: 10px;
+            letter-spacing: 0;
         }
 
         .theme-toggle {
             position: absolute;
             top: 20px;
             right: 20px;
-            background: rgba(255,255,255,0.2);
-            border: 2px solid rgba(255,255,255,0.3);
-            color: white;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.5);
+            color: inherit;
             padding: 8px 16px;
-            border-radius: 20px;
+            border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s;
+            font-weight: 500;
+            font-family: inherit;
+            box-shadow: none;
+            transition: background 0.2s;
         }
 
         .theme-toggle:hover {
-            background: rgba(255,255,255,0.3);
-            transform: scale(1.05);
+            background: rgba(255,255,255,0.12);
         }
 
         /* Dropbox Sync Styles */
@@ -119,13 +179,13 @@
         }
 
         .sync-status {
-            background: rgba(255,255,255,0.2);
-            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.16);
+            border: 1px solid rgba(255,255,255,0.4);
             color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
+            padding: 6px 14px;
+            border-radius: 16px;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 500;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -152,20 +212,21 @@
         }
 
         .sync-button {
-            background: rgba(255,255,255,0.2);
-            border: 2px solid rgba(255,255,255,0.3);
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.5);
             color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
+            padding: 6px 16px;
+            border-radius: 4px;
             cursor: pointer;
             font-size: 13px;
-            font-weight: 600;
-            transition: all 0.3s;
+            font-weight: 500;
+            font-family: inherit;
+            box-shadow: none;
+            transition: background 0.2s;
         }
 
         .sync-button:hover {
-            background: rgba(255,255,255,0.3);
-            transform: scale(1.05);
+            background: rgba(255,255,255,0.12);
         }
 
         .sync-button:disabled {
@@ -176,9 +237,9 @@
         .sync-settings {
             background: var(--section-bg);
             padding: 15px;
-            border-radius: 12px;
+            border-radius: var(--md-radius);
             margin-bottom: 20px;
-            border: 2px solid var(--border-color);
+            border: 1px solid var(--border-color);
         }
 
         .sync-settings h4 {
@@ -218,31 +279,36 @@
         .tabs {
             display: flex;
             background: var(--tab-bg);
-            border-bottom: 2px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
             transition: background 0.3s ease;
+            overflow-x: auto;
         }
 
         .tab {
             flex: 1;
-            padding: 20px;
+            padding: 18px 16px;
             text-align: center;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 500;
             color: var(--text-secondary);
-            transition: all 0.3s;
+            transition: background 0.2s, color 0.2s;
             border: none;
+            border-bottom: 2px solid transparent;
             background: none;
-            font-size: 16px;
+            font-family: inherit;
+            font-size: 14px;
+            white-space: nowrap;
         }
 
         .tab:hover {
             background: var(--tab-hover);
+            color: var(--text-primary);
         }
 
         .tab.active {
             background: var(--container-bg);
-            color: #667eea;
-            border-bottom: 3px solid #667eea;
+            color: var(--md-primary);
+            border-bottom: 2px solid var(--md-primary);
         }
 
         .tab-content {
@@ -274,24 +340,27 @@
         label {
             display: block;
             margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.9em;
+            color: var(--text-secondary);
         }
 
         input, select, textarea {
             width: 100%;
             padding: 12px;
-            border: 2px solid var(--input-border);
-            border-radius: 8px;
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
             font-size: 14px;
-            transition: border-color 0.3s;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
             background: var(--input-bg);
             color: var(--text-primary);
         }
 
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--md-primary);
+            box-shadow: 0 0 0 1px var(--md-primary);
         }
 
         /* Searchable Pants Dropdown */
@@ -303,11 +372,10 @@
             max-height: 300px;
             overflow-y: auto;
             background: var(--input-bg);
-            border: 2px solid #667eea;
-            border-radius: 8px;
+            border-radius: 4px;
             margin-top: 4px;
             z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: var(--elevation-4);
         }
 
         .pants-dropdown-item {
@@ -322,12 +390,12 @@
         }
 
         .pants-dropdown-item:hover {
-            background: rgba(102, 126, 234, 0.1);
+            background: var(--tab-hover);
         }
 
         .pants-dropdown-item .pants-name {
             color: var(--text-primary);
-            font-weight: 600;
+            font-weight: 500;
             margin-bottom: 4px;
         }
 
@@ -343,32 +411,43 @@
         }
 
         button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 24px;
+            background: var(--md-primary);
+            color: var(--md-on-primary);
+            padding: 10px 24px;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: inherit;
+            letter-spacing: 0.02em;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: var(--elevation-1);
+            transition: box-shadow 0.2s, background 0.2s;
         }
 
         button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: var(--elevation-2);
+            background: var(--md-primary-dark);
         }
 
         button:active {
-            transform: translateY(0);
+            box-shadow: var(--elevation-1);
         }
 
         .btn-secondary {
-            background: #6c757d;
+            background: transparent;
+            color: var(--md-primary);
+            box-shadow: none;
+            border: 1px solid var(--input-border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--tab-hover);
+            box-shadow: none;
         }
 
         .btn-danger {
-            background: #dc3545;
+            background: var(--md-secondary);
         }
 
         table {
@@ -416,7 +495,7 @@
         }
 
         th:hover {
-            background: rgba(102, 126, 234, 0.1);
+            background: rgba(var(--md-primary-rgb), 0.1);
         }
 
         th .header-content {
@@ -440,7 +519,7 @@
 
         th .sort-indicator.active {
             opacity: 1;
-            color: #667eea;
+            color: var(--md-primary);
             font-weight: bold;
         }
 
@@ -458,9 +537,8 @@
             top: 100%;
             left: 0;
             background: var(--input-bg);
-            border: 2px solid #667eea;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            border-radius: 4px;
+            box-shadow: var(--elevation-4);
             padding: 12px;
             min-width: 200px;
             max-width: 300px;
@@ -505,7 +583,7 @@
 
         .filter-dropdown-search input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--md-primary);
         }
 
         .filter-dropdown-controls {
@@ -517,16 +595,20 @@
         .filter-dropdown-controls button {
             padding: 4px 8px;
             font-size: 0.75em;
+            font-family: inherit;
+            font-weight: 500;
             background: var(--section-bg);
             border: 1px solid var(--border-color);
             border-radius: 4px;
+            box-shadow: none;
             cursor: pointer;
             color: var(--text-primary);
         }
 
         .filter-dropdown-controls button:hover {
-            background: rgba(102, 126, 234, 0.1);
-            border-color: #667eea;
+            background: rgba(var(--md-primary-rgb), 0.1);
+            border-color: var(--md-primary);
+            box-shadow: none;
         }
 
         .filter-option {
@@ -539,7 +621,7 @@
         }
 
         .filter-option:hover {
-            background: rgba(102, 126, 234, 0.1);
+            background: rgba(var(--md-primary-rgb), 0.1);
         }
 
         .filter-option input[type="checkbox"] {
@@ -570,7 +652,7 @@
 
         .filter-icon.active {
             opacity: 1;
-            color: #f5576c;
+            color: var(--md-secondary);
         }
 
         th {
@@ -643,8 +725,8 @@
         }
 
         .inventory-card:hover {
-            border-color: #667eea;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            border-color: var(--md-primary);
+            box-shadow: 0 4px 12px rgba(var(--md-primary-rgb), 0.15);
         }
 
         .inventory-card-header {
@@ -729,11 +811,11 @@
             gap: 8px;
             padding: 10px 8px;
             cursor: pointer;
-            -webkit-tap-highlight-color: rgba(102, 126, 234, 0.15);
+            -webkit-tap-highlight-color: rgba(var(--md-primary-rgb), 0.15);
         }
 
         .list-item-summary:active {
-            background-color: rgba(102, 126, 234, 0.1);
+            background-color: rgba(var(--md-primary-rgb), 0.1);
         }
 
         .list-brand-model {
@@ -765,7 +847,7 @@
             flex-shrink: 0;
             font-size: 0.78em;
             font-weight: 700;
-            color: #667eea;
+            color: var(--md-primary);
             white-space: nowrap;
         }
 
@@ -784,7 +866,7 @@
             gap: 6px;
             padding: 8px;
             justify-content: flex-start;
-            background: rgba(102, 126, 234, 0.04);
+            background: rgba(var(--md-primary-rgb), 0.04);
             border-top: 1px dashed var(--border-color);
         }
 
@@ -798,17 +880,20 @@
             padding: 8px 14px;
             cursor: pointer;
             font-size: 1.1em;
+            font-family: inherit;
             color: var(--text-primary);
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 6px;
-            transition: all 0.2s;
+            border-radius: 4px;
+            box-shadow: none;
+            transition: background 0.2s;
             flex: 1;
         }
 
         .btn-action-small:hover {
-            background: rgba(102, 126, 234, 0.1);
+            background: rgba(var(--md-primary-rgb), 0.1);
+            box-shadow: none;
         }
 
         .btn-action-small:active {
@@ -855,12 +940,12 @@
         }
 
         .recommendation-card {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            background: var(--md-secondary);
             color: white;
             padding: 30px;
-            border-radius: 12px;
+            border-radius: var(--md-radius);
             margin-bottom: 30px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: var(--elevation-2);
         }
 
         .recommendation-card h3 {
@@ -881,12 +966,16 @@
         }
 
         .stat-card {
-            background: var(--section-bg);
+            background: var(--container-bg);
             padding: 20px;
-            border-radius: 12px;
+            border-radius: var(--md-radius);
             text-align: center;
-            border: 2px solid var(--border-color);
-            transition: background 0.3s ease;
+            box-shadow: var(--elevation-1);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--elevation-2);
         }
 
         .stat-card h4 {
@@ -898,23 +987,28 @@
         .stat-card .stat-value {
             font-size: 2em;
             font-weight: bold;
-            color: #667eea;
+            color: var(--md-primary);
         }
 
         .wear-log-entry {
-            background: var(--section-bg);
+            background: var(--container-bg);
             padding: 15px;
-            border-radius: 8px;
+            border-radius: var(--md-radius);
             margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: background 0.3s ease;
+            box-shadow: var(--elevation-1);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .wear-log-entry:hover {
+            box-shadow: var(--elevation-2);
         }
 
         .wear-log-entry .date {
             font-weight: 600;
-            color: #667eea;
+            color: var(--md-primary);
         }
 
         .empty-state {
@@ -939,7 +1033,7 @@
         .form-section {
             background: var(--section-bg);
             padding: 20px;
-            border-radius: 12px;
+            border-radius: var(--md-radius);
             margin-bottom: 30px;
         }
 
@@ -958,7 +1052,7 @@
         .filter-section {
             background: var(--section-bg);
             padding: 15px;
-            border-radius: 12px;
+            border-radius: var(--md-radius);
             margin-bottom: 15px;
         }
 
@@ -999,12 +1093,12 @@
         .modal-content {
             background-color: var(--container-bg);
             padding: 30px;
-            border-radius: 12px;
+            border-radius: var(--md-radius);
             max-width: 500px;
             width: 90%;
             max-height: 80vh;
             overflow-y: auto;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            box-shadow: var(--elevation-16);
             position: relative;
         }
 
@@ -1014,7 +1108,7 @@
             align-items: center;
             margin-bottom: 20px;
             padding-bottom: 15px;
-            border-bottom: 2px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
         }
 
         .modal-header h3 {
@@ -1025,20 +1119,24 @@
         .modal-close {
             background: none;
             border: none;
-            font-size: 28px;
+            border-radius: 50%;
+            font-size: 24px;
+            font-family: inherit;
             cursor: pointer;
             color: var(--text-secondary);
+            box-shadow: none;
             padding: 0;
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: background 0.2s;
         }
 
         .modal-close:hover {
             color: var(--text-primary);
-            transform: none;
+            background: var(--tab-hover);
             box-shadow: none;
         }
 
@@ -1051,11 +1149,10 @@
             background: var(--section-bg);
             padding: 12px 15px;
             margin-bottom: 8px;
-            border-radius: 8px;
+            border-radius: 4px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid var(--border-color);
         }
 
         .wash-history-item > div {
@@ -1064,7 +1161,7 @@
 
         .wash-history-item .date {
             font-weight: 600;
-            color: #667eea;
+            color: var(--md-primary);
             display: block;
             margin-bottom: 4px;
         }
@@ -1076,21 +1173,21 @@
         }
 
         .wash-history-item .delete-wash {
-            background: #dc3545;
+            background: var(--md-secondary);
             color: white;
             border: none;
             padding: 6px 12px;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
             font-size: 0.85em;
-            transition: all 0.2s;
+            font-family: inherit;
+            box-shadow: var(--elevation-1);
+            transition: box-shadow 0.2s;
             white-space: nowrap;
         }
 
         .wash-history-item .delete-wash:hover {
-            background: #c82333;
-            transform: scale(1.05);
-            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+            box-shadow: var(--elevation-2);
         }
     </style>
 </head>
@@ -1233,7 +1330,7 @@
                     <input type="text" id="quickSearch" placeholder="Search across all columns..." oninput="renderInventoryTable()">
                 </div>
                 <p style="color: var(--text-secondary); font-size: 0.85em; margin-top: 8px;">
-                    💡 Click column headers to sort. Click <span style="color: #667eea;">▼</span> to filter columns.
+                    💡 Click column headers to sort. Click <span style="color: var(--md-primary);">▼</span> to filter columns.
                 </p>
             </div>
             
@@ -1372,7 +1469,7 @@
                         Connect to Dropbox to securely sync your data across all devices.
                     </p>
                     
-                    <div style="background: var(--section-bg); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 2px solid #0061ff;">
+                    <div style="background: var(--section-bg); padding: 15px; border-radius: 4px; margin-bottom: 15px; border-left: 4px solid #0061ff;">
                         <h4 style="color: var(--text-primary); margin-bottom: 10px;">📝 One-Time Setup (5 minutes):</h4>
                         <ol style="color: var(--text-secondary); margin-left: 20px; line-height: 1.8; font-size: 0.9em;">
                             <li>Go to: <a href="https://www.dropbox.com/developers/apps/create" target="_blank" style="color: #0061ff;">dropbox.com/developers/apps/create</a></li>
@@ -1403,7 +1500,7 @@
                         </ol>
                         
                         <div style="margin-top: 20px; text-align: center;">
-                            <button onclick="startDropboxOAuth()" style="font-size: 1.1em; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            <button onclick="startDropboxOAuth()" style="font-size: 1.1em; padding: 12px 24px; background: var(--md-primary); border: none; color: white; border-radius: 4px; cursor: pointer; font-weight: 500; box-shadow: var(--elevation-1);">
                                 🔐 Connect to Dropbox
                             </button>
                         </div>
@@ -1428,7 +1525,7 @@
                     
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <button onclick="manualSync()" class="btn-secondary">🔄 Sync Now</button>
-                        <button onclick="handleDisconnect()" style="background: #dc3545; color: white;">Disconnect (Forget Token)</button>
+                        <button onclick="handleDisconnect()" style="background: var(--md-secondary); color: white;">Disconnect (Forget Token)</button>
                     </div>
                     
                     <p style="color: var(--text-secondary); font-size: 0.85em; margin-top: 15px;">
@@ -2013,10 +2110,10 @@
                         <td>${pants.fabricWeight === 'Lightweight' ? 'Light' : pants.fabricWeight === 'Heavyweight' ? 'Heavy' : pants.fabricWeight}</td>
                         <td>${pants.fabricWeightOz || '-'}</td>
                         <td><strong style="color: ${wearColor}; font-size: 1em;">${pants.wearCount}</strong></td>
-                        <td><strong style="color: #667eea; font-size: 1em;">${pants.wearsSinceWash}</strong></td>
+                        <td><strong style="color: var(--md-primary); font-size: 1em;">${pants.wearsSinceWash}</strong></td>
                         <td>
                             ${pants.timesWashed > 0 
-                                ? `<span style="cursor: pointer; color: #667eea; text-decoration: underline;" onclick="viewWashHistory(${pants.id})">${pants.timesWashed}</span>`
+                                ? `<span style="cursor: pointer; color: var(--md-primary); text-decoration: underline;" onclick="viewWashHistory(${pants.id})">${pants.timesWashed}</span>`
                                 : pants.timesWashed
                             }
                         </td>
@@ -2027,7 +2124,7 @@
                                 <button class="btn-secondary" onclick="markAsWashed(${pants.id})" title="Mark as Washed">🧼</button>
                                 <button class="btn-secondary" onclick="editPants(${pants.id})" title="Edit">✏️</button>
                                 <button class="btn-danger" onclick="deletePants(${pants.id})" title="Delete">🗑️</button>
-                                <button class="btn-secondary" onclick="openNotesModal(${pants.id})" title="View/Edit Notes" style="${pants.notes ? 'color: #f5576c;' : ''} ${pants.notes ? 'font-weight: bold;' : ''}">📝</button>
+                                <button class="btn-secondary" onclick="openNotesModal(${pants.id})" title="View/Edit Notes" style="${pants.notes ? 'color: var(--md-secondary);' : ''} ${pants.notes ? 'font-weight: bold;' : ''}">📝</button>
                                 <button class="btn-secondary" onclick="archivePants(${pants.id})" title="Archive">📦</button>
                             </div>
                         </td>
@@ -2048,7 +2145,7 @@
                     : '-';
                 
                 cardsHtml += `
-                    <div class="inventory-list-item" style="background-color: ${index % 2 === 0 ? 'transparent' : 'rgba(102, 126, 234, 0.05)'}">
+                    <div class="inventory-list-item" style="background-color: ${index % 2 === 0 ? 'transparent' : 'rgba(var(--md-primary-rgb), 0.05)'}">
                         <div class="list-item-summary" data-pants-id="${pants.id}">
                             <span class="list-brand-model">${pants.brand} ${pants.model}</span>
                             <span class="list-color-chip" style="background: ${colorHex}; color: ${textColor};">${pants.color}</span>
@@ -2059,7 +2156,7 @@
                             <button class="btn-action-small" onclick="event.stopPropagation(); markAsWashed(${pants.id})" title="Mark as Washed">🧼</button>
                             <button class="btn-action-small" onclick="event.stopPropagation(); editPants(${pants.id})" title="Edit">✏️</button>
                             <button class="btn-action-small" onclick="event.stopPropagation(); deletePants(${pants.id})" title="Delete">🗑️</button>
-                            <button class="btn-action-small" onclick="event.stopPropagation(); openNotesModal(${pants.id})" title="View/Edit Notes" style="${pants.notes ? 'color: #f5576c; font-weight: bold;' : ''}">📝</button>
+                            <button class="btn-action-small" onclick="event.stopPropagation(); openNotesModal(${pants.id})" title="View/Edit Notes" style="${pants.notes ? 'color: var(--md-secondary); font-weight: bold;' : ''}">📝</button>
                             <button class="btn-action-small" onclick="event.stopPropagation(); archivePants(${pants.id})" title="Archive">📦</button>
                         </div>
                     </div>
@@ -2148,7 +2245,7 @@
                 const textColor = ['White', 'Cream', 'Light Gray', 'Beige', 'Tan', 'Khaki', 'Light Blue'].includes(pants.color) ? '#000' : '#fff';
                 
                 html += `
-                    <div class="inventory-list-item" style="background-color: ${index % 2 === 0 ? 'transparent' : 'rgba(102, 126, 234, 0.05)'}">
+                    <div class="inventory-list-item" style="background-color: ${index % 2 === 0 ? 'transparent' : 'rgba(var(--md-primary-rgb), 0.05)'}">
                         <div class="list-item-summary" data-pants-id="${pants.id}">
                             <span class="list-brand-model">${pants.brand} ${pants.model}</span>
                             <span class="list-color-chip" style="background: ${colorHex}; color: ${textColor};">${pants.color}</span>
@@ -2436,7 +2533,7 @@
                         <div>
                             <div class="date">${new Date(log.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
                             <div><strong>${pants.brand} ${pants.model}</strong> - ${pants.color} (${pants.style})</div>
-                            <div style="color: #667eea; font-size: 0.9em; font-weight: 600; margin-top: 4px;">
+                            <div style="color: var(--md-primary); font-size: 0.9em; font-weight: 600; margin-top: 4px;">
                                 Total wears: ${displayWearCount} • Wears since wash: ${displayWearsSinceWash}
                             </div>
                             ${log.temperature ? `<div style="color: var(--text-secondary); font-size: 0.9em;">High: ${log.temperature}°F</div>` : ''}
@@ -2559,7 +2656,7 @@
         function generateRecommendation(container) {
             if (inventory.length === 0) {
                 container.innerHTML = `
-                    <div class="recommendation-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <div class="recommendation-card" style="background: var(--md-secondary);">
                         <h3>📭 No Pants Available</h3>
                         <p>Add some pants to your inventory first!</p>
                     </div>
@@ -2779,7 +2876,7 @@
 
                 ${needsWashing.length > 0 ? `
                     <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-primary);">🧼 Need Washing (10+ wears without wash)</h3>
-                    <div style="background: var(--section-bg); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 2px solid #ff5252;">
+                    <div style="background: var(--section-bg); padding: 20px; border-radius: 4px; margin-bottom: 20px; border-left: 4px solid var(--tonal-red-border);">
                         ${needsWashing.map(p => {
                             return `
                             <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border-color);">
@@ -2797,14 +2894,14 @@
 
                 <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-primary);">Most & Least Worn</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div style="background: #e8f5e9; padding: 20px; border-radius: 12px;">
-                        <h4 style="color: #2e7d32; margin-bottom: 10px;">🏆 Most Worn</h4>
+                    <div style="background: var(--tonal-green-bg); padding: 20px; border-radius: var(--md-radius);">
+                        <h4 style="color: var(--tonal-green-text); margin-bottom: 10px;">🏆 Most Worn</h4>
                         <p style="color: var(--text-primary);"><strong>${mostWorn.brand} ${mostWorn.model}</strong></p>
                         <p style="color: var(--text-primary);">${mostWorn.color} - ${mostWorn.style}</p>
                         <p style="font-size: 1.5em; margin-top: 10px; color: var(--text-primary);"><strong>${mostWorn.wearCount}</strong> wears</p>
                     </div>
-                    <div style="background: #fff3e0; padding: 20px; border-radius: 12px;">
-                        <h4 style="color: #e65100; margin-bottom: 10px;">😴 Least Worn</h4>
+                    <div style="background: var(--tonal-orange-bg); padding: 20px; border-radius: var(--md-radius);">
+                        <h4 style="color: var(--tonal-orange-text); margin-bottom: 10px;">😴 Least Worn</h4>
                         <p style="color: var(--text-primary);"><strong>${leastWorn.brand} ${leastWorn.model}</strong></p>
                         <p style="color: var(--text-primary);">${leastWorn.color} - ${leastWorn.style}</p>
                         <p style="font-size: 1.5em; margin-top: 10px; color: var(--text-primary);"><strong>${leastWorn.wearCount}</strong> wears</p>
@@ -2813,14 +2910,14 @@
 
                 <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-primary);">Wash Statistics</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div style="background: #e3f2fd; padding: 20px; border-radius: 12px;">
-                        <h4 style="color: #1565c0; margin-bottom: 10px;">🧼 Most Washed</h4>
+                    <div style="background: var(--tonal-blue-bg); padding: 20px; border-radius: var(--md-radius);">
+                        <h4 style="color: var(--tonal-blue-text); margin-bottom: 10px;">🧼 Most Washed</h4>
                         <p style="color: var(--text-primary);"><strong>${mostWashed.brand} ${mostWashed.model}</strong></p>
                         <p style="color: var(--text-primary);">${mostWashed.color} - ${mostWashed.style}</p>
                         <p style="font-size: 1.5em; margin-top: 10px; color: var(--text-primary);"><strong>${mostWashed.timesWashed || 0}</strong> washes</p>
                     </div>
-                    <div style="background: #fce4ec; padding: 20px; border-radius: 12px;">
-                        <h4 style="color: #c2185b; margin-bottom: 10px;">🚨 Needs Wash Most</h4>
+                    <div style="background: var(--tonal-pink-bg); padding: 20px; border-radius: var(--md-radius);">
+                        <h4 style="color: var(--tonal-pink-text); margin-bottom: 10px;">🚨 Needs Wash Most</h4>
                         <p style="color: var(--text-primary);"><strong>${needsWashMost.brand} ${needsWashMost.model}</strong></p>
                         <p style="color: var(--text-primary);">${needsWashMost.color} - ${needsWashMost.style}</p>
                         <p style="font-size: 1.5em; margin-top: 10px; color: var(--text-primary);"><strong>${needsWashMost.wearsSinceWash || 0}</strong> wears since wash</p>
@@ -2828,7 +2925,7 @@
                 </div>
 
                 <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-primary);">Style Breakdown</h3>
-                <div style="background: var(--section-bg); padding: 20px; border-radius: 12px;">
+                <div style="background: var(--section-bg); padding: 20px; border-radius: var(--md-radius);">
                     ${Object.entries(styleCount).map(([style, count]) => {
                         return `
                         <div style="margin-bottom: 10px;">
@@ -2837,14 +2934,14 @@
                                 <span style="color: var(--text-primary);">${count} pair${count !== 1 ? 's' : ''}</span>
                             </div>
                             <div style="background: var(--border-color); height: 8px; border-radius: 4px; overflow: hidden;">
-                                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100%; width: ${(count / totalPants) * 100}%;"></div>
+                                <div style="background: var(--md-primary); height: 100%; width: ${(count / totalPants) * 100}%;"></div>
                             </div>
                         </div>
                     `;}).join('')}
                 </div>
 
                 <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-primary);">Fabric Weight Distribution</h3>
-                <div style="background: var(--section-bg); padding: 20px; border-radius: 12px;">
+                <div style="background: var(--section-bg); padding: 20px; border-radius: var(--md-radius);">
                     ${Object.entries(weightCount).map(([weight, count]) => {
                         return `
                         <div style="margin-bottom: 10px;">
@@ -2853,7 +2950,7 @@
                                 <span style="color: var(--text-primary);">${count} pair${count !== 1 ? 's' : ''}</span>
                             </div>
                             <div style="background: var(--border-color); height: 8px; border-radius: 4px; overflow: hidden;">
-                                <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); height: 100%; width: ${(count / totalPants) * 100}%;"></div>
+                                <div style="background: var(--md-secondary); height: 100%; width: ${(count / totalPants) * 100}%;"></div>
                             </div>
                         </div>
                     `;}).join('')}
@@ -2885,7 +2982,7 @@
                     <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border-color);">
                         <p style="color: var(--text-primary);"><strong>${pants.brand} ${pants.model}</strong></p>
                         <p style="color: var(--text-secondary); font-size: 0.9em;">${pants.color} - ${pants.style}</p>
-                        <p style="color: #667eea; font-size: 0.9em; margin-top: 8px;">Total washes: ${sortedHistory.length}</p>
+                        <p style="color: var(--md-primary); font-size: 0.9em; margin-top: 8px;">Total washes: ${sortedHistory.length}</p>
                     </div>
                     <ul class="wash-history-list">
                 `;
